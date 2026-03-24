@@ -116,6 +116,9 @@ export type IUserAccountBillingCreditCard = {
   cvv: string;
   name: string;
   expiry: string;
+  createdAt: Date | string | number;
+  latestCode?: string;
+  latestCodeCreatedAt?: Date | string | number;
 };
 
 export type IUserAccountBillingInvoice = {

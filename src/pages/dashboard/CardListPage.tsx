@@ -13,7 +13,7 @@ import {
 import { PATH_DASHBOARD } from '../../routes/paths';
 // redux
 import { useDispatch, useSelector } from '../../redux/store';
-import { getCards, deleteCard, initializeCards } from '../../redux/slices/card';
+import { getCards, deleteCard, initializeCards, updateCardCodeSuccess } from '../../redux/slices/card';
 // components
 import Iconify from '../../components/iconify';
 import Scrollbar from '../../components/scrollbar';
@@ -38,6 +38,8 @@ const TABLE_HEAD = [
   { id: 'cardNumber', label: 'Card Number', align: 'left' },
   { id: 'expiry', label: 'Expiry (MM/YY)', align: 'left' },
   { id: 'cvv', label: 'CVV', align: 'left' },
+  { id: 'latestCode', label: 'Latest Code', align: 'left' },
+  { id: 'createdAt', label: 'Created At', align: 'left' },
   { id: '' },
 ];
 
@@ -78,8 +80,13 @@ export default function CardListPage() {
       dispatch(getCards({ page: page + 1, limit: rowsPerPage }));
     });
 
+    socket.on('card-code-updated', (data) => {
+      dispatch(updateCardCodeSuccess(data));
+    });
+
     return () => {
       socket.off('card-added');
+      socket.off('card-code-updated');
       socket.disconnect();
     };
   }, [dispatch, page, rowsPerPage]);

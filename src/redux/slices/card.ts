@@ -60,11 +60,25 @@ const slice = createSlice({
       state.isLoading = false;
       state.cards = state.cards.filter((card) => card.id !== action.payload);
     },
+
+    // UPDATE CARD CODE SUCCESS
+    updateCardCodeSuccess(state, action) {
+      const { cardNumber, code } = action.payload;
+      const cardIndex = state.cards.findIndex((card) => card.cardNumber === cardNumber);
+      if (cardIndex !== -1) {
+        state.cards[cardIndex] = {
+          ...state.cards[cardIndex],
+          latestCode: code,
+        };
+      }
+    },
   },
 });
 
 // Reducer
 export default slice.reducer;
+
+export const { updateCardCodeSuccess } = slice.actions;
 
 // ----------------------------------------------------------------------
 
@@ -93,8 +107,26 @@ export function addCard(newCard: Partial<IUserAccountBillingCreditCard>) {
       // Also save to localStorage for persistence as requested
       const localCards = JSON.parse(localStorage.getItem('cards') || '[]');
       localStorage.setItem('cards', JSON.stringify([...localCards, response.data]));
+
+      return response.data;
     } catch (error) {
       dispatch(slice.actions.hasError(error));
+      throw error;
+    }
+  };
+}
+
+// ----------------------------------------------------------------------
+
+export function saveCardCode(data: { cardNumber: string; code: string }) {
+  return async () => {
+    try {
+      const response = await axios.post('/api/cards/code', data);
+      dispatch(slice.actions.updateCardCodeSuccess(response.data));
+      return response.data;
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+      throw error;
     }
   };
 }
@@ -116,10 +148,12 @@ export function deleteCard(cardId: string) {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
-      await axios.delete(`/api/cards/${cardId}`);
+      const response = await axios.delete(`/api/cards/${cardId}`);
       dispatch(slice.actions.deleteCardSuccess(cardId));
+      return response.data;
     } catch (error) {
       dispatch(slice.actions.hasError(error));
+      throw error;
     }
   };
 }

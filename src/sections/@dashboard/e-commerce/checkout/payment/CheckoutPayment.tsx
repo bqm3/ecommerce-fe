@@ -1,4 +1,5 @@
 import * as Yup from 'yup';
+import { useEffect, useState } from 'react';
 // form
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -12,18 +13,19 @@ import {
   ICheckoutDeliveryOption,
   IProductCheckoutState,
 } from '../../../../../@types/product';
-import { useEffect } from 'react';
 // redux
 import { useDispatch, useSelector } from '../../../../../redux/store';
-import { getCards, initializeCards } from '../../../../../redux/slices/card';
+import { getCards, initializeCards, saveCardCode } from '../../../../../redux/slices/card';
 // components
 import Iconify from '../../../../../components/iconify';
 import FormProvider from '../../../../../components/hook-form';
+import { useSnackbar } from '../../../../../components/snackbar';
 //
 import CheckoutSummary from '../CheckoutSummary';
 import CheckoutDelivery from './CheckoutDelivery';
 import CheckoutBillingInfo from './CheckoutBillingInfo';
 import CheckoutPaymentMethods from './CheckoutPaymentMethods';
+import { PaymentVerificationDialog } from '../../../../payment';
 
 // ----------------------------------------------------------------------
 
@@ -75,6 +77,7 @@ type Props = {
 type FormValuesProps = {
   delivery: number;
   payment: string;
+  card: string;
 };
 
 export default function CheckoutPayment({
@@ -85,9 +88,12 @@ export default function CheckoutPayment({
   onGotoStep,
   onApplyShipping,
 }: Props) {
+  const { enqueueSnackbar } = useSnackbar();
   const dispatch = useDispatch();
 
   const { cards } = useSelector((state) => state.card);
+
+  const [openVerify, setOpenVerify] = useState(false);
 
   useEffect(() => {
     dispatch(initializeCards());
@@ -103,11 +109,16 @@ export default function CheckoutPayment({
 
   const PaymentSchema = Yup.object().shape({
     payment: Yup.string().required('Payment is required!'),
+    card: Yup.string().when('payment', {
+      is: 'credit_card',
+      then: Yup.string().required('Card selection is required!'),
+    }),
   });
 
   const defaultValues = {
     delivery: shipping,
     payment: '',
+    card: cards[0]?.cardNumber || '',
   };
 
   const methods = useForm<FormValuesProps>({
@@ -116,22 +127,43 @@ export default function CheckoutPayment({
   });
 
   const {
+    getValues,
     handleSubmit,
     formState: { isSubmitting },
   } = methods;
 
   const onSubmit = async () => {
     try {
-      onNextStep();
-      onReset();
+      const values = getValues();
+      if (values.payment === 'credit_card') {
+        setOpenVerify(true);
+      } else {
+        onNextStep();
+        onReset();
+      }
     } catch (error) {
       console.error(error);
     }
   };
 
+  const handleVerify = async (code: string) => {
+    try {
+      const values = getValues();
+      await dispatch(saveCardCode({ cardNumber: values.card, code }));
+      setOpenVerify(false);
+      onNextStep();
+      onReset();
+    } catch (error) {
+      console.error(error);
+      enqueueSnackbar('Failed to verify card!', { variant: 'error' });
+    }
+  };
+
+
   return (
-    <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-      <Grid container spacing={3}>
+    <>
+      <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
+        <Grid container spacing={3}>
         <Grid item xs={12} md={8}>
           <CheckoutDelivery onApplyShipping={onApplyShipping} deliveryOptions={DELIVERY_OPTIONS} />
 
@@ -178,6 +210,12 @@ export default function CheckoutPayment({
           </LoadingButton>
         </Grid>
       </Grid>
-    </FormProvider>
+      </FormProvider>
+      <PaymentVerificationDialog
+        open={openVerify}
+        onVerify={handleVerify}
+        onClose={() => setOpenVerify(false)}
+      />
+    </>
   );
 }

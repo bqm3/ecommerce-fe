@@ -111,6 +111,7 @@ function PaymentOption({
   isCreditMethod,
   onOpen,
 }: PaymentOptionProps) {
+  const { control } = useFormContext();
   const { value, title, icons, description } = option;
 
   return (
@@ -168,13 +169,19 @@ function PaymentOption({
               width: 1,
             }}
           >
-            <TextField select fullWidth label="Cards" SelectProps={{ native: true }}>
-              {cardOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </TextField>
+            <Controller
+              name="card"
+              control={control}
+              render={({ field }) => (
+                <TextField select fullWidth label="Cards" SelectProps={{ native: true }} {...field}>
+                  {cardOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </TextField>
+              )}
+            />
 
             <Button
               size="small"

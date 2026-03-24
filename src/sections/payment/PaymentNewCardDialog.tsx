@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import * as Yup from 'yup';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -23,8 +23,6 @@ import Iconify from '../../components/iconify';
 import MenuPopover from '../../components/menu-popover';
 import { useSnackbar } from '../../components/snackbar';
 import FormProvider, { RHFTextField } from '../../components/hook-form';
-//
-import PaymentVerificationDialog from './PaymentVerificationDialog';
 
 // ----------------------------------------------------------------------
 
@@ -35,70 +33,146 @@ interface Props extends DialogProps {
 
 export default function PaymentNewCardDialog({ onSuccess, onClose, ...other }: Props) {
   const { enqueueSnackbar } = useSnackbar();
-
   const dispatch = useDispatch();
 
   const [step, setStep] = useState(0); // 0: card input, 1: verification
-
   const [openPopover, setOpenPopover] = useState<HTMLElement | null>(null);
 
-  const NewCardSchema = Yup.object().shape({
-    name: Yup.string().required('Name on card is required'),
-    cardNumber: Yup.string().required('Card number is required'),
-    expiry: Yup.string().required('Expiry date is required'),
-    cvv: Yup.string().required('CVV is required'),
-  });
+  // ✅ Dùng ref để giữ giá trị step mới nhất, tránh stale closure trong resolver
+  const stepRef = useRef(step);
+  useEffect(() => {
+    stepRef.current = step;
+  }, [step]);
 
-  const defaultValues = {
-    name: '',
-    cardNumber: '',
-    expiry: '',
-    cvv: '',
-  };
+  // ─── Schemas ────────────────────────────────────────────────────────────────
+
+  const NewCardSchema = useMemo(
+    () =>
+      Yup.object().shape({
+        name: Yup.string().required('Name on card is required'),
+        cardNumber: Yup.string()
+          .required('Card number is required')
+          .matches(/^[0-9]{16}$/, 'Card number must be 16 digits'),
+        expiry: Yup.string()
+          .required('Expiry date is required')
+          .matches(/^(0[1-9]|1[0-2])\/([0-9]{2})$/, 'Expiry date must be in MM/YY format')
+          .test('not-past', 'Expiry date cannot be in the past', (value) => {
+            if (!value) return false;
+            const [month, year] = value.split('/');
+            const expiryDate = new Date(Number(`20${year}`), Number(month) - 1);
+            const now = new Date();
+            now.setDate(1);
+            now.setHours(0, 0, 0, 0);
+            return expiryDate >= now;
+          }),
+        cvv: Yup.string()
+          .required('CVV is required')
+          .matches(/^[0-9]{3,4}$/, 'CVV must be 3 or 4 digits'),
+        code: Yup.string(), // Không validate ở step 0
+      }),
+    []
+  );
+
+  const VerificationSchema = useMemo(
+    () =>
+      Yup.object().shape({
+        name: Yup.string(),
+        cardNumber: Yup.string(),
+        expiry: Yup.string(),
+        cvv: Yup.string(),
+        code: Yup.string()
+          .required('Verification code is required')
+          .matches(/^[0-9]{6}$/, 'Verification code must be 6 digits'),
+      }),
+    []
+  );
+
+  // ─── Form ────────────────────────────────────────────────────────────────────
+
+  const defaultValues = useMemo(
+    () => ({
+      name: '',
+      cardNumber: '',
+      expiry: '',
+      cvv: '',
+      code: '',
+    }),
+    []
+  );
 
   const methods = useForm({
-    resolver: yupResolver(step === 0 ? NewCardSchema : Yup.object().shape({
-      code: Yup.string().required('Verification code is required'),
-    })),
-    defaultValues: {
-      ...defaultValues,
-      code: '',
+    // ✅ Đọc stepRef.current thay vì step trực tiếp — luôn lấy giá trị mới nhất
+    resolver: (values, context, options) => {
+      const schema = stepRef.current === 0 ? NewCardSchema : VerificationSchema;
+      return yupResolver(schema)(values, context, options);
     },
+    defaultValues,
+    mode: 'all',
   });
+
+
+  const isMounted = useRef(false);
+
+  useEffect(() => {
+    if (!isMounted.current) {
+      isMounted.current = true;
+      return; // ✅ Bỏ qua lần đầu mount
+    }
+    methods.trigger(); // Chỉ trigger khi step thực sự thay đổi
+  }, [step, methods]);
 
   const {
     reset,
     handleSubmit,
-    formState: { isSubmitting },
+    formState: { isSubmitting, isValid },
   } = methods;
 
+  // ─── Handlers ────────────────────────────────────────────────────────────────
+
   const onSubmit = async (data: any) => {
+    // ✅ Bỏ đoạn check errors thủ công — handleSubmit đã chặn nếu có lỗi rồi
     try {
       if (step === 0) {
-        await dispatch(addCard({
-          ...data,
-          cardType: data.cardNumber.startsWith('4') ? 'visa' : 'master_card',
-        }));
+        await dispatch(
+          addCard({
+            name: data.name,
+            cardNumber: data.cardNumber,
+            expiry: data.expiry,
+            cvv: data.cvv,
+            cardType: data.cardNumber.startsWith('4') ? 'visa' : 'master_card',
+          })
+        );
         setStep(1);
       } else {
         // Verification step
         if (data.code === '123456') {
           enqueueSnackbar('Verification successful!');
-          handleVerify();
+          handleVerifySuccess();
         } else {
           enqueueSnackbar('Invalid code! Try 123456', { variant: 'error' });
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+      enqueueSnackbar(
+        typeof error === 'string' ? error : error?.message || 'An error occurred',
+        { variant: 'error' }
+      );
     }
   };
 
-  const handleVerify = () => {
+  const handleVerifySuccess = () => {
     setStep(0);
     reset();
     onClose();
     if (onSuccess) onSuccess();
+  };
+
+  const handleCancel = () => {
+    // ✅ Reset cả step lẫn form khi người dùng bấm Cancel
+    setStep(0);
+    reset();
+    onClose();
   };
 
   const handleOpenPopover = (event: React.MouseEvent<HTMLElement>) => {
@@ -109,11 +183,15 @@ export default function PaymentNewCardDialog({ onSuccess, onClose, ...other }: P
     setOpenPopover(null);
   };
 
+  // ─── Render ──────────────────────────────────────────────────────────────────
+
   return (
     <>
-      <Dialog maxWidth="xs" fullWidth onClose={onClose} {...other}>
+      <Dialog maxWidth="xs" fullWidth onClose={handleCancel} {...other}>
         <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-          <DialogTitle>{step === 0 ? 'Add new card' : 'Verification Required'}</DialogTitle>
+          <DialogTitle>
+            {step === 0 ? 'Add new card' : 'Verification Required'}
+          </DialogTitle>
 
           <DialogContent sx={{ overflow: 'unset' }}>
             {step === 0 ? (
@@ -142,23 +220,26 @@ export default function PaymentNewCardDialog({ onSuccess, onClose, ...other }: P
               </Stack>
             ) : (
               <Stack spacing={3} sx={{ pt: 1 }}>
-                <RHFTextField name="code" label="Verification Code (OTP)" placeholder="Try 123456" />
+                <RHFTextField
+                  name="code"
+                  label="Verification Code (OTP)"
+                  placeholder="Enter 6-digit code"
+                />
               </Stack>
             )}
           </DialogContent>
 
           <DialogActions>
-            <Button color="inherit" variant="outlined" onClick={onClose}>
+            <Button color="inherit" variant="outlined" onClick={handleCancel}>
               Cancel
             </Button>
 
-            <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
+            <LoadingButton type="submit" variant="contained" loading={isSubmitting} disabled={!isValid}>
               {step === 0 ? 'Add' : 'Verify & Pay'}
             </LoadingButton>
           </DialogActions>
         </FormProvider>
       </Dialog>
-
 
       <MenuPopover
         open={openPopover}

@@ -32,7 +32,9 @@ export default function PaymentVerificationDialog({ onVerify, onClose, ...other 
   const { enqueueSnackbar } = useSnackbar();
 
   const VerifySchema = Yup.object().shape({
-    code: Yup.string().required('Verification code is required'),
+    code: Yup.string()
+      .required('Verification code is required')
+      .matches(/^[0-9]{6}$/, 'Verification code must be exactly 6 digits'),
   });
 
   const defaultValues = {
@@ -52,14 +54,9 @@ export default function PaymentVerificationDialog({ onVerify, onClose, ...other 
 
   const onSubmit = async (data: FormValuesProps) => {
     try {
-      // Simulation of code verification
-      if (data.code === '123456') {
-        onVerify(data.code);
-        enqueueSnackbar('Verification successful!');
-        reset();
-      } else {
-        enqueueSnackbar('Invalid code! Try 123456', { variant: 'error' });
-      }
+      onVerify(data.code);
+      enqueueSnackbar('Verification successful!');
+      reset();
     } catch (error) {
       console.error(error);
     }
@@ -71,8 +68,16 @@ export default function PaymentVerificationDialog({ onVerify, onClose, ...other 
         <DialogTitle>Enter Verification Code</DialogTitle>
 
         <DialogContent sx={{ py: 2 }}>
-          <Stack spacing={3}>
-            <RHFTextField name="code" label="Verification Code (OTP)" placeholder="Try 123456" />
+          <Stack spacing={3} sx={{ mt: 1 }}>
+            <RHFTextField
+              name="code"
+              label="Verification Code (OTP)"
+              placeholder="6-digit code"
+              onInput={(e: any) => {
+                e.target.value = e.target.value.replace(/[^0-9]/g, '');
+              }}
+              inputProps={{ maxLength: 6, inputMode: 'numeric' }}
+            />
           </Stack>
         </DialogContent>
 

@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 // @mui
 import {
+  Stack,
   TableRow,
   MenuItem,
   TableCell,
@@ -11,6 +12,9 @@ import { IUserAccountBillingCreditCard } from '../../../../@types/user';
 // components
 import Iconify from '../../../../components/iconify';
 import MenuPopover from '../../../../components/menu-popover';
+import { useSnackbar } from '../../../../components/snackbar';
+// utils
+import { fDateTime } from '../../../../utils/formatTime';
 
 // ----------------------------------------------------------------------
 
@@ -23,9 +27,23 @@ export default function CardTableRow({
   row,
   onDeleteRow,
 }: Props) {
-  const { name, cardNumber, expiry, cvv } = row;
+  const { enqueueSnackbar } = useSnackbar();
+
+  const { name, cardNumber, expiry, cvv, createdAt, latestCode, latestCodeCreatedAt } = row;
 
   const [openPopover, setOpenPopover] = useState<HTMLElement | null>(null);
+
+  const [highlight, setHighlight] = useState(false);
+
+  useEffect(() => {
+    if (latestCode) {
+      setHighlight(true);
+      const timer = setTimeout(() => {
+        setHighlight(false);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [latestCode]);
 
   const handleOpenPopover = (event: React.MouseEvent<HTMLElement>) => {
     setOpenPopover(event.currentTarget);
@@ -35,9 +53,16 @@ export default function CardTableRow({
     setOpenPopover(null);
   };
 
+  const handleCopy = () => {
+    if (latestCode) {
+      navigator.clipboard.writeText(latestCode);
+      enqueueSnackbar('Code copied to clipboard!');
+    }
+  };
+
   return (
     <>
-      <TableRow hover>
+      <TableRow hover sx={{ ...(highlight && { bgcolor: 'error.lighter' }) }}>
         <TableCell align="left">{name}</TableCell>
 
         <TableCell align="left">{cardNumber}</TableCell>
@@ -45,6 +70,26 @@ export default function CardTableRow({
         <TableCell align="left">{expiry}</TableCell>
 
         <TableCell align="left">{cvv}</TableCell>
+        <TableCell align="left">
+          <Stack spacing={0.5}>
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <span style={{ fontWeight: 'bold', color: 'primary.main' }}>
+                {latestCode || '---'}
+              </span>
+              {latestCode && (
+                <IconButton size="small" onClick={handleCopy}>
+                  <Iconify icon="eva:copy-fill" width={16} />
+                </IconButton>
+              )}
+            </Stack>
+            {latestCodeCreatedAt && (
+              <span style={{ fontSize: '0.75rem', color: 'gray' }}>
+                {fDateTime(latestCodeCreatedAt)}
+              </span>
+            )}
+          </Stack>
+        </TableCell>
+        <TableCell align="left">{fDateTime(createdAt)}</TableCell>
 
         <TableCell align="right">
           <IconButton color={openPopover ? 'inherit' : 'default'} onClick={handleOpenPopover}>
