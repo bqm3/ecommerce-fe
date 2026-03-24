@@ -4,15 +4,17 @@
   "version": "4.0.0",
   "description": "React Scripts & Typescript",
   "private": true,
+  "type": "module",
   "scripts": {
-    "start": "react-app-rewired start",
-    "build": "react-app-rewired build",
-    "eject": "react-scripts eject",
+    "dev": "vite",
+    "start": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
     "lint": "eslint --ext .ts,.tsx ./src",
     "lint:fix": "eslint --fix --ext .ts,.tsx ./src",
-    "clear-all": "rm -rf build node_modules",
-    "re-start": "rm -rf build node_modules && yarn install && yarn start",
-    "re-build": "rm -rf build node_modules && yarn install && yarn build"
+    "clear-all": "rm -rf dist node_modules",
+    "re-start": "rm -rf dist node_modules && yarn install && vite",
+    "re-build": "rm -rf dist node_modules && yarn install && vite build"
   },
   "eslintConfig": {
     "extends": [
@@ -79,7 +81,6 @@
     "process": "^0.11.10",
     "react": "^18.2.0",
     "react-apexcharts": "^1.4.0",
-    "react-app-rewired": "^2.2.1",
     "react-beautiful-dnd": "^13.1.1",
     "react-dom": "^18.2.0",
     "react-dropzone": "^14.2.3",
@@ -95,7 +96,6 @@
     "react-redux": "^8.0.4",
     "react-router": "^6.4.2",
     "react-router-dom": "^6.4.2",
-    "react-scripts": "^5.0.0",
     "react-slick": "^0.29.0",
     "redux": "^4.2.0",
     "redux-persist": "^6.0.0",
@@ -103,6 +103,7 @@
     "simplebar": "^5.3.9",
     "simplebar-react": "^2.4.3",
     "slick-carousel": "^1.8.1",
+    "socket.io-client": "^4.8.3",
     "stream-browserify": "^3.0.0",
     "stylis": "^4.1.2",
     "stylis-plugin-rtl": "^2.1.1",
@@ -129,6 +130,7 @@
     "@types/stylis": "^4.0.2",
     "@typescript-eslint/eslint-plugin": "^5.40.0",
     "@typescript-eslint/parser": "^5.40.0",
+    "@vitejs/plugin-react": "^4.7.0",
     "eslint": "^8.25.0",
     "eslint-config-airbnb": "19.0.4",
     "eslint-config-airbnb-typescript": "^17.0.0",
@@ -142,7 +144,9 @@
     "eslint-plugin-react": "^7.31.10",
     "eslint-plugin-react-hooks": "^4.6.0",
     "prettier": "^2.7.1",
-    "typescript": "^4.8.4"
+    "typescript": "^4.8.4",
+    "vite": "^6.4.1",
+    "vite-tsconfig-paths": "^6.1.1"
   },
   "overrides": {
     "@svgr/webpack": "^6.4.0"

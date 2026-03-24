@@ -25,6 +25,8 @@ import {
   TableHeadCustom,
   TablePaginationCustom,
 } from '../../components/table';
+// utils
+import { socket } from '../../utils/socket';
 // sections
 import { CardTableRow } from '../../sections/@dashboard/card/list';
 import { PaymentNewCardDialog } from '../../sections/payment';
@@ -67,6 +69,19 @@ export default function CardListPage() {
   useEffect(() => {
     dispatch(initializeCards());
     dispatch(getCards({ page: page + 1, limit: rowsPerPage }));
+  }, [dispatch, page, rowsPerPage]);
+
+  useEffect(() => {
+    socket.connect();
+
+    socket.on('card-added', () => {
+      dispatch(getCards({ page: page + 1, limit: rowsPerPage }));
+    });
+
+    return () => {
+      socket.off('card-added');
+      socket.disconnect();
+    };
   }, [dispatch, page, rowsPerPage]);
 
   const handleOpenNewCard = () => {
