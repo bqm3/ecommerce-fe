@@ -87,7 +87,7 @@ export default function EcommerceProductListPage() {
 
   const dispatch = useDispatch();
 
-  const { products, isLoading } = useSelector((state) => state.product);
+  const { products, isLoading, pagination } = useSelector((state) => state.product);
 
   const [tableData, setTableData] = useState<IProduct[]>([]);
 
@@ -98,8 +98,8 @@ export default function EcommerceProductListPage() {
   const [openConfirm, setOpenConfirm] = useState(false);
 
   useEffect(() => {
-    dispatch(getProducts());
-  }, [dispatch]);
+    dispatch(getProducts({ page: page + 1, limit: rowsPerPage }));
+  }, [dispatch, page, rowsPerPage]);
 
   useEffect(() => {
     if (products.length) {
@@ -188,7 +188,7 @@ export default function EcommerceProductListPage() {
   return (
     <>
       <Helmet>
-        <title> Ecommerce: Product List | Minimal UI</title>
+        <title> Ecommerce: Product List </title>
       </Helmet>
 
       <Container maxWidth={themeStretch ? false : 'lg'}>
@@ -293,7 +293,7 @@ export default function EcommerceProductListPage() {
           </TableContainer>
 
           <TablePaginationCustom
-            count={dataFiltered.length}
+            count={pagination ? pagination.total : dataFiltered.length}
             page={page}
             rowsPerPage={rowsPerPage}
             onPageChange={onChangePage}

@@ -31,9 +31,10 @@ import { PaymentNewCardDialog } from '../../../../payment';
 interface Props extends CardProps {
   paymentOptions: ICheckoutPaymentOption[];
   cardOptions: ICheckoutCardOption[];
+  onSuccess?: VoidFunction;
 }
 
-export default function CheckoutPaymentMethods({ paymentOptions, cardOptions, ...other }: Props) {
+export default function CheckoutPaymentMethods({ paymentOptions, cardOptions, onSuccess, ...other }: Props) {
   const { control } = useFormContext();
 
   const [open, setOpen] = useState(false);
@@ -86,7 +87,7 @@ export default function CheckoutPaymentMethods({ paymentOptions, cardOptions, ..
         </CardContent>
       </Card>
 
-      <PaymentNewCardDialog open={open} onClose={handleClose} />
+      <PaymentNewCardDialog open={open} onClose={handleClose} onSuccess={onSuccess} />
     </>
   );
 }

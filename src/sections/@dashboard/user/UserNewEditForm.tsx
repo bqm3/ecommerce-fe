@@ -47,12 +47,7 @@ export default function UserNewEditForm({ isEdit = false, currentUser }: Props) 
     email: Yup.string().required('Email is required').email(),
     phoneNumber: Yup.string().required('Phone number is required'),
     address: Yup.string().required('Address is required'),
-    country: Yup.string().required('country is required'),
-    company: Yup.string().required('Company is required'),
-    state: Yup.string().required('State is required'),
-    city: Yup.string().required('City is required'),
     role: Yup.string().required('Role Number is required'),
-    avatarUrl: Yup.mixed().test('required', 'Avatar is required', (value) => value !== ''),
   });
 
   const defaultValues = useMemo(
@@ -61,14 +56,9 @@ export default function UserNewEditForm({ isEdit = false, currentUser }: Props) 
       email: currentUser?.email || '',
       phoneNumber: currentUser?.phoneNumber || '',
       address: currentUser?.address || '',
-      country: currentUser?.country || '',
-      state: currentUser?.state || '',
-      city: currentUser?.city || '',
-      zipCode: currentUser?.zipCode || '',
       avatarUrl: currentUser?.avatarUrl || '',
       isVerified: currentUser?.isVerified || true,
       status: currentUser?.status,
-      company: currentUser?.company || '',
       role: currentUser?.role || '',
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps

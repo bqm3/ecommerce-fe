@@ -18,6 +18,8 @@ import {
 import { LoadingButton } from '@mui/lab';
 // components
 import FormProvider, { RHFTextField } from '../../../../components/hook-form';
+import { useSnackbar } from '../../../../components/snackbar';
+import axios from 'src/utils/axios';
 
 // ----------------------------------------------------------------------
 
@@ -30,9 +32,10 @@ type FormValuesProps = {
 
 interface Props extends DialogProps {
   onClose: VoidFunction;
+  id: string;
 }
 
-export default function ProductDetailsNewReviewForm({ onClose, ...other }: Props) {
+export default function ProductDetailsNewReviewForm({ onClose,id, ...other }: Props) {
   const ReviewSchema = Yup.object().shape({
     rating: Yup.mixed().required('Rating is required'),
     review: Yup.string().required('Review is required'),
@@ -40,6 +43,7 @@ export default function ProductDetailsNewReviewForm({ onClose, ...other }: Props
     email: Yup.string().email('Email must be a valid email address').required('Email is required'),
   });
 
+  const { enqueueSnackbar } = useSnackbar();
   const defaultValues = {
     rating: null,
     review: '',
@@ -61,8 +65,12 @@ export default function ProductDetailsNewReviewForm({ onClose, ...other }: Props
 
   const onSubmit = async (data: FormValuesProps) => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+       await axios.post(`/api/reviews/${id}`, {
+        ...data,
+      });
+
       reset();
+      enqueueSnackbar('Create success!');
       onClose();
     } catch (error) {
       console.error(error);

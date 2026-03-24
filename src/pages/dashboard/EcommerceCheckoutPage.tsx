@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 // @mui
 import { Grid, Container } from '@mui/material';
 // routes
-import { PATH_DASHBOARD } from '../../routes/paths';
+import { PATH_DASHBOARD, PATH_STORE } from '../../routes/paths';
 // redux
 import { useDispatch, useSelector } from '../../redux/store';
 import {
@@ -105,24 +105,24 @@ export default function EcommerceCheckoutPage() {
   const handleReset = () => {
     if (completed) {
       dispatch(resetCart());
-      navigate(PATH_DASHBOARD.eCommerce.shop, { replace: true });
+      navigate(PATH_STORE.shop, { replace: true });
     }
   };
 
   return (
     <>
       <Helmet>
-        <title> Ecommerce: Checkout | Minimal UI</title>
+        <title> Ecommerce: Checkout </title>
       </Helmet>
 
-      <Container maxWidth={themeStretch ? false : 'lg'}>
+      <Container maxWidth={'lg'} sx={{ mb: 5 }}>
         <CustomBreadcrumbs
           heading="Checkout"
           links={[
-            { name: 'Dashboard', href: PATH_DASHBOARD.root },
+            { name: 'Home', href: '/' },
             {
-              name: 'E-Commerce',
-              href: PATH_DASHBOARD.eCommerce.root,
+              name: 'Shop',
+              href: PATH_STORE.shop,
             },
             { name: 'Checkout' },
           ]}

@@ -14,12 +14,11 @@ import AccountBillingInvoiceHistory from './AccountBillingInvoiceHistory';
 // ----------------------------------------------------------------------
 
 type Props = {
-  cards: IUserAccountBillingCreditCard[];
   invoices: IUserAccountBillingInvoice[];
   addressBook: IUserAccountBillingAddress[];
 };
 
-export default function AccountBilling({ cards, addressBook, invoices }: Props) {
+export default function AccountBilling({ addressBook, invoices }: Props) {
   return (
     <Grid container spacing={5}>
       <Grid item xs={12} md={8}>
@@ -49,7 +48,7 @@ export default function AccountBilling({ cards, addressBook, invoices }: Props) 
             </Box>
           </Card>
 
-          <AccountBillingPaymentMethod cards={cards} />
+          <AccountBillingPaymentMethod />
 
           <AccountBillingAddressBook addressBook={addressBook} />
         </Stack>

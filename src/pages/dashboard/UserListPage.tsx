@@ -1,6 +1,6 @@
 import { Helmet } from 'react-helmet-async';
 import { paramCase } from 'change-case';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 // @mui
 import {
@@ -20,8 +20,9 @@ import {
 import { PATH_DASHBOARD } from '../../routes/paths';
 // @types
 import { IUserAccountGeneral } from '../../@types/user';
-// _mock_
-import { _userList } from '../../_mock/arrays';
+// redux
+import { useDispatch, useSelector } from '../../redux/store';
+import { getUsers } from '../../redux/slices/user';
 // components
 import Iconify from '../../components/iconify';
 import Scrollbar from '../../components/scrollbar';
@@ -93,7 +94,21 @@ export default function UserListPage() {
 
   const navigate = useNavigate();
 
-  const [tableData, setTableData] = useState(_userList);
+  const dispatch = useDispatch();
+
+  const { users, isLoading, pagination } = useSelector((state) => state.user);
+
+  const [tableData, setTableData] = useState<IUserAccountGeneral[]>([]);
+
+  useEffect(() => {
+    dispatch(getUsers({ page: page + 1, limit: rowsPerPage }));
+  }, [dispatch, page, rowsPerPage]);
+
+  useEffect(() => {
+    if (users.length) {
+      setTableData(users);
+    }
+  }, [users]);
 
   const [filterName, setFilterName] = useState('');
 
@@ -187,7 +202,7 @@ export default function UserListPage() {
   return (
     <>
       <Helmet>
-        <title> User: List | Minimal UI</title>
+        <title> User: List </title>
       </Helmet>
 
       <Container maxWidth={themeStretch ? false : 'lg'}>
@@ -299,7 +314,7 @@ export default function UserListPage() {
           </TableContainer>
 
           <TablePaginationCustom
-            count={dataFiltered.length}
+            count={pagination ? pagination.total : dataFiltered.length}
             page={page}
             rowsPerPage={rowsPerPage}
             onPageChange={onChangePage}

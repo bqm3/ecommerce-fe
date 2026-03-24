@@ -47,8 +47,8 @@ export default function ProductDetailsReview({ product }: Props) {
           justifyContent="center"
           spacing={1}
           sx={{
-            pt: { xs: 5, md: 0 },
-            pb: { xs: 3, md: 0 },
+            pt: { xs: 5, md: 5 },
+            pb: { xs: 3, md: 2 },
           }}
         >
           <Typography variant="subtitle1" sx={{ color: 'text.secondary' }}>
@@ -73,10 +73,10 @@ export default function ProductDetailsReview({ product }: Props) {
             borderRight: (theme) => ({ md: `dashed 1px ${theme.palette.divider}` }),
           }}
         >
-          {ratings
-            .slice(0)
-            .reverse()
-            .map((rating) => (
+          {ratings && ratings.length > 0 && ratings
+            ?.slice(0)
+            ?.reverse()
+            ?.map((rating) => (
               <ProgressItem key={rating.name} star={rating} total={total} />
             ))}
         </Stack>
@@ -105,7 +105,7 @@ export default function ProductDetailsReview({ product }: Props) {
 
       <ProductDetailsReviewList reviews={product.reviews} />
 
-      <ProductDetailsReviewNewDialog open={openReview} onClose={handleCloseReview} />
+      <ProductDetailsReviewNewDialog id={product.id} open={openReview} onClose={handleCloseReview} />
     </>
   );
 }

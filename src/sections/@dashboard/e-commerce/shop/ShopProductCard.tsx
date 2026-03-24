@@ -3,7 +3,7 @@ import { Link as RouterLink } from 'react-router-dom';
 // @mui
 import { Box, Card, Link, Stack, Fab } from '@mui/material';
 // routes
-import { PATH_DASHBOARD } from '../../../../routes/paths';
+import { PATH_DASHBOARD, PATH_STORE } from '../../../../routes/paths';
 // utils
 import { fCurrency } from '../../../../utils/formatNumber';
 // redux
@@ -28,7 +28,7 @@ export default function ShopProductCard({ product }: Props) {
 
   const dispatch = useDispatch();
 
-  const linkTo = PATH_DASHBOARD.eCommerce.view(paramCase(name));
+  const linkTo = PATH_STORE.view(paramCase(id));
 
   const handleAddCart = async () => {
     const newProduct = {
@@ -37,8 +37,8 @@ export default function ShopProductCard({ product }: Props) {
       cover,
       available,
       price,
-      colors: [colors[0]],
-      size: sizes[0],
+      colors: colors && colors.length ? [colors[0]] : [],
+      size: sizes && sizes.length ? sizes[0] : null,
       quantity: 1,
     };
     try {
@@ -103,7 +103,7 @@ export default function ShopProductCard({ product }: Props) {
         </Link>
 
         <Stack direction="row" alignItems="center" justifyContent="space-between">
-          <ColorPreview colors={colors} />
+          {colors && colors.length > 0 && <ColorPreview colors={colors} />}
 
           <Stack direction="row" spacing={0.5} sx={{ typography: 'subtitle1' }}>
             {priceSale && (

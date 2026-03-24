@@ -10,7 +10,7 @@ import { ColorSinglePickerProps } from './types';
 const ColorSinglePicker = forwardRef<HTMLDivElement, ColorSinglePickerProps>(
   ({ colors, ...other }, ref) => (
     <RadioGroup row ref={ref} {...other}>
-      {colors.map((color) => {
+      {colors && colors.length ? colors.map((color) => {
         const whiteColor = color === '#FFFFFF' || color === 'white';
 
         return (
@@ -27,7 +27,7 @@ const ColorSinglePicker = forwardRef<HTMLDivElement, ColorSinglePickerProps>(
             }}
           />
         );
-      })}
+      }) : null}
     </RadioGroup>
   )
 );

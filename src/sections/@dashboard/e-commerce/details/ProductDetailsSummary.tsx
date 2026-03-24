@@ -23,7 +23,7 @@ import FormProvider, { RHFSelect } from '../../../../components/hook-form';
 // ----------------------------------------------------------------------
 
 interface FormValuesProps extends Omit<ICheckoutCartItem, 'colors'> {
-  colors: string;
+  colors: any;
 }
 
 type Props = {
@@ -68,8 +68,8 @@ export default function ProductDetailsSummary({
     cover,
     available,
     price,
-    colors: colors[0],
-    size: sizes[4],
+    colors:  colors && colors.length ? [colors[0]] : [],
+    size: sizes && sizes.length ? sizes[4] : null,
     quantity: available < 1 ? 0 : 1,
   };
 
@@ -185,7 +185,7 @@ export default function ProductDetailsSummary({
                 value={field.value}
                 onChange={field.onChange}
                 sx={{
-                  ...(colors.length > 4 && {
+                  ...(colors && colors.length > 4 && {
                     maxWidth: 144,
                     justifyContent: 'flex-end',
                   }),
@@ -217,11 +217,11 @@ export default function ProductDetailsSummary({
               </Link>
             }
           >
-            {sizes.map((size) => (
+            {sizes && sizes.length ? sizes.map((size: any) => (
               <option key={size} value={size}>
                 {size}
               </option>
-            ))}
+            )) : null}
           </RHFSelect>
         </Stack>
 

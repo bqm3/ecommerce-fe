@@ -32,7 +32,9 @@ export default function ShopProductList({ products, loading, ...other }: Props) 
           <ShopProductCard key={product.id} product={product} />
         ) : (
           <SkeletonProductItem key={index} />
+        
         )
+        // <SkeletonProductItem key={index} />
       )}
     </Box>
   );

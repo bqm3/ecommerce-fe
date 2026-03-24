@@ -12,6 +12,10 @@ import {
   ICheckoutDeliveryOption,
   IProductCheckoutState,
 } from '../../../../../@types/product';
+import { useEffect } from 'react';
+// redux
+import { useDispatch, useSelector } from '../../../../../redux/store';
+import { getCards, initializeCards } from '../../../../../redux/slices/card';
 // components
 import Iconify from '../../../../../components/iconify';
 import FormProvider from '../../../../../components/hook-form';
@@ -37,31 +41,27 @@ const DELIVERY_OPTIONS: ICheckoutDeliveryOption[] = [
 ];
 
 const PAYMENT_OPTIONS: ICheckoutPaymentOption[] = [
-  {
-    value: 'paypal',
-    title: 'Pay with Paypal',
-    description: 'You will be redirected to PayPal website to complete your purchase securely.',
-    icons: ['/assets/icons/payments/ic_paypal.svg'],
-  },
+  // {
+  //   value: 'paypal',
+  //   title: 'Pay with Paypal',
+  //   description: 'You will be redirected to PayPal website to complete your purchase securely.',
+  //   icons: ['/assets/icons/payments/ic_paypal.svg'],
+  // },
   {
     value: 'credit_card',
     title: 'Credit / Debit Card',
     description: 'We support Mastercard, Visa, Discover and Stripe.',
     icons: ['/assets/icons/payments/ic_mastercard.svg', '/assets/icons/payments/ic_visa.svg'],
   },
-  {
-    value: 'cash',
-    title: 'Cash on CheckoutDelivery',
-    description: 'Pay with cash when your order is delivered.',
-    icons: [],
-  },
+  // {
+  //   value: 'cash',
+  //   title: 'Cash on CheckoutDelivery',
+  //   description: 'Pay with cash when your order is delivered.',
+  //   icons: [],
+  // },
 ];
 
-const CARDS_OPTIONS: ICheckoutCardOption[] = [
-  { value: 'ViSa1', label: '**** **** **** 1212 - Jimmy Holland' },
-  { value: 'ViSa2', label: '**** **** **** 2424 - Shawn Stokes' },
-  { value: 'MasterCard', label: '**** **** **** 4545 - Cole Armstrong' },
-];
+// ----------------------------------------------------------------------
 
 type Props = {
   checkout: IProductCheckoutState;
@@ -85,6 +85,20 @@ export default function CheckoutPayment({
   onGotoStep,
   onApplyShipping,
 }: Props) {
+  const dispatch = useDispatch();
+
+  const { cards } = useSelector((state) => state.card);
+
+  useEffect(() => {
+    dispatch(initializeCards());
+    dispatch(getCards());
+  }, [dispatch]);
+
+  const CARDS_OPTIONS = cards.map((card) => ({
+    value: card.cardNumber,
+    label: `**** **** **** ${card.cardNumber.slice(-4)}`,
+  }));
+
   const { total, discount, subtotal, shipping, billing } = checkout;
 
   const PaymentSchema = Yup.object().shape({
@@ -124,6 +138,10 @@ export default function CheckoutPayment({
           <CheckoutPaymentMethods
             cardOptions={CARDS_OPTIONS}
             paymentOptions={PAYMENT_OPTIONS}
+            onSuccess={() => {
+              onNextStep();
+              onReset();
+            }}
             sx={{ my: 3 }}
           />
 

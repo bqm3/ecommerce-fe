@@ -39,7 +39,6 @@ export default function UserAccountPage() {
       icon: <Iconify icon="ic:round-receipt" />,
       component: (
         <AccountBilling
-          cards={_userPayment}
           addressBook={_userAddressBook}
           invoices={_userInvoices}
         />
@@ -68,7 +67,7 @@ export default function UserAccountPage() {
   return (
     <>
       <Helmet>
-        <title> User: Account Settings | Minimal UI</title>
+        <title> User: Account Settings </title>
       </Helmet>
 
       <Container maxWidth={themeStretch ? false : 'lg'}>

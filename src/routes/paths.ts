@@ -74,10 +74,8 @@ export const PATH_DASHBOARD = {
     list: path(ROOTS_DASHBOARD, '/e-commerce/list'),
     checkout: path(ROOTS_DASHBOARD, '/e-commerce/checkout'),
     new: path(ROOTS_DASHBOARD, '/e-commerce/product/new'),
-    view: (name: string) => path(ROOTS_DASHBOARD, `/e-commerce/product/${name}`),
-    edit: (name: string) => path(ROOTS_DASHBOARD, `/e-commerce/product/${name}/edit`),
-    demoEdit: path(ROOTS_DASHBOARD, '/e-commerce/product/nike-blazer-low-77-vintage/edit'),
-    demoView: path(ROOTS_DASHBOARD, '/e-commerce/product/nike-air-force-1-ndestrukt'),
+    view: (id: string) => path(ROOTS_DASHBOARD, `/e-commerce/product/${id}`),
+    edit: (id: string) => path(ROOTS_DASHBOARD, `/e-commerce/product/${id}/edit`),
   },
   invoice: {
     root: path(ROOTS_DASHBOARD, '/invoice'),
@@ -95,6 +93,18 @@ export const PATH_DASHBOARD = {
     view: (title: string) => path(ROOTS_DASHBOARD, `/blog/post/${title}`),
     demoView: path(ROOTS_DASHBOARD, '/blog/post/apply-these-7-secret-techniques-to-improve-event'),
   },
+  card: {
+    root: path(ROOTS_DASHBOARD, '/card'),
+    list: path(ROOTS_DASHBOARD, '/card/list'),
+  },
+};
+
+// Public storefront paths (MainLayout, no auth required)
+export const PATH_STORE = {
+  root: '/e-commerce',
+  shop: '/e-commerce/shop',
+  checkout: '/e-commerce/checkout',
+  view: (id: string) => `/e-commerce/product/${id}`,
 };
 
 export const PATH_DOCS = {

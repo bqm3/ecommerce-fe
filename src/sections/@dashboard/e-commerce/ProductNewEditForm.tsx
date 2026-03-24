@@ -23,6 +23,7 @@ import FormProvider, {
   RHFRadioGroup,
   RHFAutocomplete,
 } from '../../../components/hook-form';
+import axios from 'src/utils/axios';
 
 // ----------------------------------------------------------------------
 
@@ -53,6 +54,19 @@ const TAGS_OPTION = [
   'Snatch',
   '3 Idiots',
 ];
+
+const COLOR_OPTIONS = [
+  '#00AB55',
+  '#000000',
+  '#FFFFFF',
+  '#FFC0CB',
+  '#FF4842',
+  '#1890FF',
+  '#94D82D',
+  '#FFC107',
+];
+
+const SIZE_OPTIONS = ['S', 'M', 'L', 'XL', 'XXL', '3XL'];
 
 // ----------------------------------------------------------------------
 
@@ -93,6 +107,11 @@ export default function ProductNewEditForm({ isEdit, currentProduct }: Props) {
       taxes: true,
       gender: currentProduct?.gender || GENDER_OPTION[2].value,
       category: currentProduct?.category || CATEGORY_OPTION[0].classify[1],
+      colors: currentProduct?.colors || [],
+      sizes: currentProduct?.sizes || [],
+      status: currentProduct?.status || '',
+      inventoryType: currentProduct?.inventoryType || 'in_stock',
+      available: currentProduct?.available || 0,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [currentProduct]
@@ -126,9 +145,38 @@ export default function ProductNewEditForm({ isEdit, currentProduct }: Props) {
 
   const onSubmit = async (data: FormValuesProps) => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      // 1. filter file mới (File) vs url cũ
+      const files = data.images.filter((f) => f instanceof File);
+
+      let uploadedUrls: string[] = [];
+
+      if (files.length > 0) {
+        const formData = new FormData();
+
+        files.forEach((file) => {
+          formData.append('images', file);
+        });
+
+        const uploadRes = await axios.post('/api/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+
+        uploadedUrls = uploadRes.data.images;
+      }
+
+      // 2. merge url cũ + mới
+      const oldUrls = data.images.filter((f) => typeof f === 'string');
+
+      const finalImages = [...oldUrls, ...uploadedUrls];
+
+      // 3. create product
+      await axios.post('/api/products', {
+        ...data,
+        images: finalImages,
+      });
+
       reset();
-      enqueueSnackbar(!isEdit ? 'Create success!' : 'Update success!');
+      enqueueSnackbar('Create success!');
       navigate(PATH_DASHBOARD.eCommerce.list);
     } catch (error) {
       console.error(error);
@@ -244,6 +292,53 @@ export default function ProductNewEditForm({ isEdit, currentProduct }: Props) {
                   }
                   renderInput={(params) => <TextField label="Tags" {...params} />}
                 />
+
+                <RHFAutocomplete
+                  name="colors"
+                  multiple
+                  freeSolo
+                  onChange={(event, newValue) => setValue('colors', newValue)}
+                  options={COLOR_OPTIONS.map((option) => option)}
+                  renderTags={(value, getTagProps) =>
+                    value.map((option, index) => (
+                      <Chip {...getTagProps({ index })} key={option} size="small" label={option} />
+                    ))
+                  }
+                  renderInput={(params) => <TextField label="Colors" {...params} />}
+                />
+
+                <RHFAutocomplete
+                  name="sizes"
+                  multiple
+                  freeSolo
+                  onChange={(event, newValue) => setValue('sizes', newValue)}
+                  options={SIZE_OPTIONS.map((option) => option)}
+                  renderTags={(value, getTagProps) =>
+                    value.map((option, index) => (
+                      <Chip {...getTagProps({ index })} key={option} size="small" label={option} />
+                    ))
+                  }
+                  renderInput={(params) => <TextField label="Sizes" {...params} />}
+                />
+
+                <RHFSelect focused name="status" label="Status">
+                  <option value="">None</option>
+                  <option value="sale">Sale</option>
+                  <option value="new">New</option>
+                </RHFSelect>
+
+                <RHFSelect  name="inventoryType" label="Inventory Type">
+                  <option value="in_stock">In Stock</option>
+                  <option value="out_of_stock">Out of Stock</option>
+                  <option value="on_backorder">On Backorder</option>
+                </RHFSelect>
+
+                <RHFTextField
+                  name="available"
+                  label="Available Quantity"
+                  type="number"
+                  onChange={(event) => setValue('available', Number(event.target.value))}
+                />
               </Stack>
             </Card>
 
@@ -273,7 +368,7 @@ export default function ProductNewEditForm({ isEdit, currentProduct }: Props) {
                   label="Sale Price"
                   placeholder="0.00"
                   value={getValues('priceSale') === 0 ? '' : getValues('priceSale')}
-                  onChange={(event) => setValue('price', Number(event.target.value))}
+                  onChange={(event) => setValue('priceSale', Number(event.target.value))}
                   InputLabelProps={{ shrink: true }}
                   InputProps={{
                     startAdornment: (

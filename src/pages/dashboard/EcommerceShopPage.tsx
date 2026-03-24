@@ -4,12 +4,12 @@ import orderBy from 'lodash/orderBy';
 // form
 import { useForm } from 'react-hook-form';
 // @mui
-import { Container, Typography, Stack } from '@mui/material';
+import { Container, Typography, Stack, Pagination } from '@mui/material';
 // redux
 import { useDispatch, useSelector } from '../../redux/store';
 import { getProducts } from '../../redux/slices/product';
 // routes
-import { PATH_DASHBOARD } from '../../routes/paths';
+import { PATH_DASHBOARD, PATH_STORE } from '../../routes/paths';
 // @types
 import { IProduct, IProductFilter } from '../../@types/product';
 // components
@@ -33,7 +33,9 @@ export default function EcommerceShopPage() {
 
   const dispatch = useDispatch();
 
-  const { products, checkout } = useSelector((state) => state.product);
+  const { products, pagination } = useSelector((state) => state.product);
+
+  const [page, setPage] = useState(1);
 
   const [openFilter, setOpenFilter] = useState(false);
 
@@ -69,8 +71,8 @@ export default function EcommerceShopPage() {
   const dataFiltered = applyFilter(products, values);
 
   useEffect(() => {
-    dispatch(getProducts());
-  }, [dispatch]);
+    dispatch(getProducts({ page, limit: 12 }));
+  }, [dispatch, page]);
 
   const handleResetFilter = () => {
     reset();
@@ -87,20 +89,19 @@ export default function EcommerceShopPage() {
   return (
     <>
       <Helmet>
-        <title> Ecommerce: Shop | Minimal UI</title>
+        <title> Ecommerce: Shop </title>
       </Helmet>
 
       <FormProvider methods={methods}>
-        <Container maxWidth={themeStretch ? false : 'lg'}>
+        <Container maxWidth={'lg'} sx={{ mb: 5 }}>
           <CustomBreadcrumbs
             heading="Shop"
             links={[
-              { name: 'Dashboard', href: PATH_DASHBOARD.root },
+              { name: 'Home', href: '/' },
               {
-                name: 'E-Commerce',
-                href: PATH_DASHBOARD.eCommerce.root,
+                name: 'Shop',
+                href: PATH_STORE.shop,
               },
-              { name: 'Shop' },
             ]}
           />
 
@@ -141,7 +142,17 @@ export default function EcommerceShopPage() {
 
           <ShopProductList products={dataFiltered} loading={!products.length && isDefault} />
 
-          <CartWidget totalItems={checkout.totalItems} />
+          <Stack alignItems="center" sx={{ mt: 5, mb: 10 }}>
+            {pagination && (
+              <Pagination
+                count={pagination.totalPages}
+                page={page}
+                onChange={(event, value) => {
+                  setPage(value);
+                }}
+              />
+            )}
+          </Stack>
         </Container>
       </FormProvider>
     </>

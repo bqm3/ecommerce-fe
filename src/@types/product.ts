@@ -28,11 +28,14 @@ export type IProduct = {
     starCount: number;
     reviewCount: number;
   }[];
-  reviews: IProductReview[];
+  reviews: IProductReview[] | {
+    reviews: IProductReview[];
+    pagination: IPagination;
+  };
   colors: string[];
   status: string;
   inventoryType: string;
-  sizes: string[];
+  sizes: string[] | any;
   available: number;
   description: string;
   sold: number;
@@ -103,10 +106,18 @@ export type IProductCheckoutState = {
   totalItems: number;
 };
 
+export type IPagination = {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
+
 export type IProductState = {
   isLoading: boolean;
   error: Error | string | null;
   products: IProduct[];
   product: IProduct | null;
+  pagination: IPagination | null;
   checkout: IProductCheckoutState;
 };

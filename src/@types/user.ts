@@ -104,11 +104,6 @@ export type IUserAccountGeneral = {
   email: string;
   phoneNumber: string;
   address: string;
-  country: string;
-  state: string;
-  city: string;
-  zipCode: string;
-  company: string;
   isVerified: boolean;
   status: string;
   role: string;
@@ -118,6 +113,9 @@ export type IUserAccountBillingCreditCard = {
   id: string;
   cardNumber: string;
   cardType: string;
+  cvv: string;
+  name: string;
+  expiry: string;
 };
 
 export type IUserAccountBillingInvoice = {

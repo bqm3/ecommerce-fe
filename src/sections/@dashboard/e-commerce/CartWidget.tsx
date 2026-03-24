@@ -3,7 +3,7 @@ import { Link as RouterLink } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 import { Badge } from '@mui/material';
 // routes
-import { PATH_DASHBOARD } from '../../../routes/paths';
+import { PATH_STORE } from '../../../routes/paths';
 // components
 import Iconify from '../../../components/iconify';
 
@@ -38,7 +38,7 @@ type Props = {
 
 export default function CartWidget({ totalItems }: Props) {
   return (
-    <RouterLink to={PATH_DASHBOARD.eCommerce.checkout}>
+    <RouterLink to={PATH_STORE.checkout}>
       <StyledRoot>
         <Badge showZero badgeContent={totalItems} color="error" max={99}>
           <Iconify icon="eva:shopping-cart-fill" width={24} />

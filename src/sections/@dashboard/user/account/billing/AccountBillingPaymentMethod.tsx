@@ -1,22 +1,32 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 // @mui
-import { Card, Stack, Paper, Button, Typography, IconButton } from '@mui/material';
-// @types
-import { IUserAccountBillingCreditCard } from '../../../../../@types/user';
+import { Card, Stack, Paper, Button, Typography, IconButton, MenuItem } from '@mui/material';
+// redux
+import { useDispatch, useSelector } from '../../../../../redux/store';
+import { getCards, deleteCard } from '../../../../../redux/slices/card';
 // components
 import Image from '../../../../../components/image';
 import Iconify from '../../../../../components/iconify';
+import MenuPopover from '../../../../../components/menu-popover';
 // section
 import { PaymentNewCardDialog } from '../../../../payment';
 
 // ----------------------------------------------------------------------
 
-type Props = {
-  cards: IUserAccountBillingCreditCard[];
-};
+export default function AccountBillingPaymentMethod() {
+  const dispatch = useDispatch();
 
-export default function AccountBillingPaymentMethod({ cards }: Props) {
+  const { cards } = useSelector((state) => state.card);
+
   const [open, setOpen] = useState(false);
+
+  const [openPopover, setOpenPopover] = useState<HTMLElement | null>(null);
+
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+
+  useEffect(() => {
+    dispatch(getCards());
+  }, [dispatch]);
 
   const handleOpen = () => {
     setOpen(true);
@@ -24,6 +34,23 @@ export default function AccountBillingPaymentMethod({ cards }: Props) {
 
   const handleClose = () => {
     setOpen(false);
+  };
+
+  const handleOpenPopover = (event: React.MouseEvent<HTMLElement>, cardId: string) => {
+    setOpenPopover(event.currentTarget);
+    setSelectedCardId(cardId);
+  };
+
+  const handleClosePopover = () => {
+    setOpenPopover(null);
+    setSelectedCardId(null);
+  };
+
+  const handleDelete = async () => {
+    if (selectedCardId) {
+      await dispatch(deleteCard(selectedCardId));
+      handleClosePopover();
+    }
   };
 
   return (
@@ -52,7 +79,7 @@ export default function AccountBillingPaymentMethod({ cards }: Props) {
             md: 'row',
           }}
         >
-          {cards.map((card) => (
+          {cards && cards.length > 0 && cards?.map((card) => (
             <Paper
               key={card.id}
               variant="outlined"
@@ -80,6 +107,7 @@ export default function AccountBillingPaymentMethod({ cards }: Props) {
                   right: 8,
                   position: 'absolute',
                 }}
+                onClick={(e) => handleOpenPopover(e, card.id)}
               >
                 <Iconify icon="eva:more-vertical-fill" />
               </IconButton>
@@ -87,6 +115,23 @@ export default function AccountBillingPaymentMethod({ cards }: Props) {
           ))}
         </Stack>
       </Card>
+
+      <MenuPopover
+        open={openPopover}
+        onClose={handleClosePopover}
+        arrow="right-top"
+        sx={{ width: 140 }}
+      >
+        <MenuItem
+          onClick={() => {
+            handleDelete();
+          }}
+          sx={{ color: 'error.main' }}
+        >
+          <Iconify icon="eva:trash-2-outline" />
+          Delete
+        </MenuItem>
+      </MenuPopover>
 
       <PaymentNewCardDialog open={open} onClose={handleClose} />
     </>

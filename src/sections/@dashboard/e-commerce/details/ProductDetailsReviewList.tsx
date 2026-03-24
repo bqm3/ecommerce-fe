@@ -5,17 +5,25 @@ import { Stack, Button, Rating, Avatar, Pagination, Typography } from '@mui/mate
 import { fDate } from '../../../../utils/formatTime';
 import { fShortenNumber } from '../../../../utils/formatNumber';
 // @types
-import { IProductReview } from '../../../../@types/product';
+import { IProductReview, IPagination } from '../../../../@types/product';
 // components
 import Iconify from '../../../../components/iconify';
 
 // ----------------------------------------------------------------------
 
 type Props = {
-  reviews: IProductReview[];
+  reviews: IProductReview[] | {
+    reviews: IProductReview[];
+    pagination: IPagination;
+  };
 };
 
 export default function ProductDetailsReviewList({ reviews }: Props) {
+  const isArray = Array.isArray(reviews);
+
+  const reviewList = isArray ? reviews : reviews.reviews;
+
+  const pagination = isArray ? null : reviews.pagination;
   return (
     <>
       <Stack
@@ -32,7 +40,7 @@ export default function ProductDetailsReviewList({ reviews }: Props) {
           },
         }}
       >
-        {reviews.map((review) => (
+        {reviewList.map((review) => (
           <ReviewItem key={review.id} review={review} />
         ))}
       </Stack>
@@ -47,7 +55,16 @@ export default function ProductDetailsReviewList({ reviews }: Props) {
           mr: { md: 5 },
         }}
       >
-        <Pagination count={10} />
+        {pagination && (
+          <Pagination
+            count={pagination.totalPages}
+            page={pagination.page}
+            onChange={(event, page) => {
+              // handle page change if needed
+            }}
+          />
+        )}
+        {!pagination && <Pagination count={10} />}
       </Stack>
     </>
   );

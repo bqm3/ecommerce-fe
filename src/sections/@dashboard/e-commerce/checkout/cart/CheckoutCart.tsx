@@ -3,7 +3,7 @@ import { Link as RouterLink } from 'react-router-dom';
 // @mui
 import { Grid, Card, Button, CardHeader, Typography } from '@mui/material';
 // routes
-import { PATH_DASHBOARD } from '../../../../../routes/paths';
+import { PATH_STORE } from '../../../../../routes/paths';
 // @types
 import { IProductCheckoutState } from '../../../../../@types/product';
 // components
@@ -71,7 +71,7 @@ export default function CheckoutCart({
         </Card>
 
         <Button
-          to={PATH_DASHBOARD.eCommerce.root}
+          to={PATH_STORE.root}
           component={RouterLink}
           color="inherit"
           startIcon={<Iconify icon="eva:arrow-ios-back-fill" />}

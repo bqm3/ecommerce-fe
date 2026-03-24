@@ -15,6 +15,7 @@ const initialState: IProductState = {
   error: null,
   products: [],
   product: null,
+  pagination: null,
   checkout: {
     activeStep: 0,
     cart: [],
@@ -45,7 +46,8 @@ const slice = createSlice({
     // GET PRODUCTS
     getProductsSuccess(state, action) {
       state.isLoading = false;
-      state.products = action.payload;
+      state.products = action.payload.products;
+      state.pagination = action.payload.pagination;
     },
 
     // GET PRODUCT
@@ -193,12 +195,12 @@ export const {
 
 // ----------------------------------------------------------------------
 
-export function getProducts() {
+export function getProducts(params?: any) {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
-      const response = await axios.get('/api/products');
-      dispatch(slice.actions.getProductsSuccess(response.data.products));
+      const response = await axios.get('/api/products', { params });
+      dispatch(slice.actions.getProductsSuccess(response.data));
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }
@@ -207,14 +209,12 @@ export function getProducts() {
 
 // ----------------------------------------------------------------------
 
-export function getProduct(name: string) {
+export function getProduct(id: string) {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
-      const response = await axios.get('/api/products/product', {
-        params: { name },
-      });
-      dispatch(slice.actions.getProductSuccess(response.data.product));
+      const response = await axios.get(`/api/products/${id}`);
+      dispatch(slice.actions.getProductSuccess(response.data));
     } catch (error) {
       console.error(error);
       dispatch(slice.actions.hasError(error));

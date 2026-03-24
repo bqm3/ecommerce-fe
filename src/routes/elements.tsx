@@ -5,11 +5,11 @@ import LoadingScreen from '../components/loading-screen';
 // ----------------------------------------------------------------------
 
 const Loadable = (Component: ElementType) => (props: any) =>
-  (
-    <Suspense fallback={<LoadingScreen />}>
-      <Component {...props} />
-    </Suspense>
-  );
+(
+  <Suspense fallback={<LoadingScreen />}>
+    <Component {...props} />
+  </Suspense>
+);
 
 // ----------------------------------------------------------------------
 
@@ -197,6 +197,9 @@ export const MUITransferListPage = Loadable(
 export const MUITreesViewPage = Loadable(
   lazy(() => import('../pages/components/mui/MUITreesViewPage'))
 );
+
+// CARD
+export const CardListPage = Loadable(lazy(() => import('../pages/dashboard/CardListPage')));
 
 // EXTRA
 export const DemoAnimatePage = Loadable(
