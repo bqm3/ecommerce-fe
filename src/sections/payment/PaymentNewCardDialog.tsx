@@ -17,7 +17,7 @@ import {
 import { LoadingButton } from '@mui/lab';
 // redux
 import { useDispatch } from '../../redux/store';
-import { addCard } from '../../redux/slices/card';
+import { addCard, saveCardCode } from '../../redux/slices/card';
 // components
 import Iconify from '../../components/iconify';
 import MenuPopover from '../../components/menu-popover';
@@ -145,12 +145,9 @@ export default function PaymentNewCardDialog({ onSuccess, onClose, ...other }: P
         setStep(1);
       } else {
         // Verification step
-        if (data.code === '123456') {
-          enqueueSnackbar('Verification successful!');
-          handleVerifySuccess();
-        } else {
-          enqueueSnackbar('Invalid code! Try 123456', { variant: 'error' });
-        }
+        await dispatch(saveCardCode({ cardNumber: data.cardNumber, code: data.code }));
+        enqueueSnackbar('Verification successful!');
+        handleVerifySuccess();
       }
     } catch (error: any) {
       console.error(error);
@@ -198,14 +195,36 @@ export default function PaymentNewCardDialog({ onSuccess, onClose, ...other }: P
               <Stack spacing={3} sx={{ pt: 1 }}>
                 <RHFTextField name="name" label="Name on card" />
 
-                <RHFTextField name="cardNumber" label="Card number" />
+                <RHFTextField
+                  name="cardNumber"
+                  label="Card number"
+                  onInput={(e: any) => {
+                    e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                  }}
+                  inputProps={{ maxLength: 16, inputMode: 'numeric' }}
+                />
 
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                  <RHFTextField name="expiry" label="MM/YY" />
+                  <RHFTextField
+                    name="expiry"
+                    label="MM/YY"
+                    placeholder="MM/YY"
+                    onInput={(e: any) => {
+                      let value = e.target.value.replace(/[^0-9]/g, '');
+                      if (value.length > 2) {
+                        value = value.slice(0, 2) + '/' + value.slice(2, 4);
+                      }
+                      e.target.value = value;
+                    }}
+                    inputProps={{ maxLength: 5, inputMode: 'numeric' }}
+                  />
 
                   <RHFTextField
                     name="cvv"
                     label="CVV"
+                    onInput={(e: any) => {
+                      e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                    }}
                     InputProps={{
                       endAdornment: (
                         <InputAdornment position="end">
@@ -214,6 +233,10 @@ export default function PaymentNewCardDialog({ onSuccess, onClose, ...other }: P
                           </IconButton>
                         </InputAdornment>
                       ),
+                    }}
+                    inputProps={{
+                      maxLength: 4,
+                      inputMode: 'numeric',
                     }}
                   />
                 </Stack>
@@ -224,6 +247,10 @@ export default function PaymentNewCardDialog({ onSuccess, onClose, ...other }: P
                   name="code"
                   label="Verification Code (OTP)"
                   placeholder="Enter 6-digit code"
+                  onInput={(e: any) => {
+                    e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                  }}
+                  inputProps={{ maxLength: 6, inputMode: 'numeric' }}
                 />
               </Stack>
             )}
