@@ -21,8 +21,10 @@ import { getProducts } from '../../redux/slices/product';
 import { PATH_DASHBOARD } from '../../routes/paths';
 // @types
 import { IProduct } from '../../@types/product';
+import axios from '../../utils/axios';
 // components
 import { useSettingsContext } from '../../components/settings';
+import { useSnackbar } from '../../components/snackbar';
 import {
   useTable,
   getComparator,
@@ -86,6 +88,7 @@ export default function EcommerceProductListPage() {
   const navigate = useNavigate();
 
   const dispatch = useDispatch();
+  const { enqueueSnackbar } = useSnackbar();
 
   const { products, isLoading, pagination } = useSelector((state) => state.product);
 
@@ -143,32 +146,46 @@ export default function EcommerceProductListPage() {
     setFilterStatus(typeof value === 'string' ? value.split(',') : value);
   };
 
-  const handleDeleteRow = (id: string) => {
-    const deleteRow = tableData.filter((row) => row.id !== id);
-    setSelected([]);
-    setTableData(deleteRow);
+  const handleDeleteRow = async (id: string) => {
+    try {
+      await axios.delete(`/api/products/${id}`);
+      const deleteRow = tableData.filter((row) => row.id !== id);
+      setSelected([]);
+      setTableData(deleteRow);
 
-    if (page > 0) {
-      if (dataInPage.length < 2) {
-        setPage(page - 1);
+      if (page > 0) {
+        if (dataInPage.length < 2) {
+          setPage(page - 1);
+        }
       }
+      enqueueSnackbar('Delete success!');
+    } catch (error: any) {
+      console.error(error);
+      enqueueSnackbar(error.response?.data?.message || error.message || 'Delete failed', { variant: 'error' });
     }
   };
 
-  const handleDeleteRows = (selected: string[]) => {
-    const deleteRows = tableData.filter((row) => !selected.includes(row.id));
-    setSelected([]);
-    setTableData(deleteRows);
+  const handleDeleteRows = async (selected: string[]) => {
+    try {
+      await Promise.all(selected.map((id) => axios.delete(`/api/products/${id}`)));
+      const deleteRows = tableData.filter((row) => !selected.includes(row.id));
+      setSelected([]);
+      setTableData(deleteRows);
 
-    if (page > 0) {
-      if (selected.length === dataInPage.length) {
-        setPage(page - 1);
-      } else if (selected.length === dataFiltered.length) {
-        setPage(0);
-      } else if (selected.length > dataInPage.length) {
-        const newPage = Math.ceil((tableData.length - selected.length) / rowsPerPage) - 1;
-        setPage(newPage);
+      if (page > 0) {
+        if (selected.length === dataInPage.length) {
+          setPage(page - 1);
+        } else if (selected.length === dataFiltered.length) {
+          setPage(0);
+        } else if (selected.length > dataInPage.length) {
+          const newPage = Math.ceil((tableData.length - selected.length) / rowsPerPage) - 1;
+          setPage(newPage);
+        }
       }
+      enqueueSnackbar('Delete success!');
+    } catch (error: any) {
+      console.error(error);
+      enqueueSnackbar(error.response?.data?.message || error.message || 'Delete failed', { variant: 'error' });
     }
   };
 
