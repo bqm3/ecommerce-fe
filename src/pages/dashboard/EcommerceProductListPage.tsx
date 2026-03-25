@@ -177,7 +177,7 @@ export default function EcommerceProductListPage() {
   };
 
   const handleViewRow = (id: string) => {
-    navigate(PATH_DASHBOARD.eCommerce.view(paramCase(id)));
+    navigate(PATH_DASHBOARD.eCommerce.edit(paramCase(id)));
   };
 
   const handleResetFilter = () => {
@@ -273,8 +273,8 @@ export default function EcommerceProductListPage() {
                           selected={selected.includes(row.id)}
                           onSelectRow={() => onSelectRow(row.id)}
                           onDeleteRow={() => handleDeleteRow(row.id)}
-                          onEditRow={() => handleEditRow(row.name)}
-                          onViewRow={() => handleViewRow(row.name)}
+                          onEditRow={() => handleEditRow(row.id)}
+                          onViewRow={() => handleViewRow(row.id)}
                         />
                       ) : (
                         !isNotFound && <TableSkeleton key={index} sx={{ height: denseHeight }} />

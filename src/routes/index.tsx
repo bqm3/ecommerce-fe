@@ -185,8 +185,8 @@ export default function Router() {
         {
           path: 'e-commerce',
           children: [
-            { element: <Navigate to="/dashboard/e-commerce/shop" replace />, index: true },
-            { path: 'shop', element: <EcommerceShopPage /> },
+            { element: <Navigate to="/dashboard/e-commerce/list" replace />, index: true },
+            // { path: 'shop', element: <EcommerceShopPage /> },
             { path: 'product/:id', element: <EcommerceProductDetailsPage /> },
             { path: 'list', element: <EcommerceProductListPage /> },
             { path: 'product/new', element: <EcommerceProductCreatePage /> },

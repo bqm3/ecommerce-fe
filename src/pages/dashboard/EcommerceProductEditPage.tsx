@@ -1,12 +1,12 @@
 import { Helmet } from 'react-helmet-async';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { paramCase } from 'change-case';
 import { useParams } from 'react-router-dom';
 // @mui
 import { Container } from '@mui/material';
 // redux
 import { useDispatch, useSelector } from '../../redux/store';
-import { getProducts } from '../../redux/slices/product';
+import product, { getProduct, getProducts } from '../../redux/slices/product';
 // routes
 import { PATH_DASHBOARD } from '../../routes/paths';
 // components
@@ -22,15 +22,15 @@ export default function EcommerceProductEditPage() {
 
   const dispatch = useDispatch();
 
-  const { name } = useParams();
+  const { id } = useParams();
 
-  const currentProduct = useSelector((state) =>
-    state.product.products.find((product) => paramCase(product.name) === name)
-  );
+  const { product, isLoading, checkout } = useSelector((state) => state.product);
 
   useEffect(() => {
-    dispatch(getProducts());
-  }, [dispatch]);
+    if (id) {
+      dispatch(getProduct(id as string));
+    }
+  }, [dispatch, id]);
 
   return (
     <>
@@ -47,11 +47,11 @@ export default function EcommerceProductEditPage() {
               name: 'E-Commerce',
               href: PATH_DASHBOARD.eCommerce.root,
             },
-            { name: currentProduct?.name },
+            { name: product?.name },
           ]}
         />
 
-        <ProductNewEditForm isEdit currentProduct={currentProduct} />
+        <ProductNewEditForm isEdit currentProduct={product || undefined} />
       </Container>
     </>
   );

@@ -55,7 +55,6 @@ export default function EcommerceProductDetailsPage() {
   const dispatch = useDispatch();
 
   const { product, isLoading, checkout } = useSelector((state) => state.product);
-  console.log('product, isLoading, checkout', product, isLoading, checkout);
 
   const [currentTab, setCurrentTab] = useState('description');
 

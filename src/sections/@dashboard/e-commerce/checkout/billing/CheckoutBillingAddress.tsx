@@ -1,10 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 // @mui
 import { Grid, Card, Button, Typography, Stack, Box } from '@mui/material';
 // @types
 import { ICheckoutBillingAddress, IProductCheckoutState } from '../../../../../@types/product';
-// _mock
-import { _addressBooks } from '../../../../../_mock/arrays';
 // components
 import Label from '../../../../../components/label';
 import Iconify from '../../../../../components/iconify';
@@ -25,6 +23,14 @@ export default function CheckoutBillingAddress({ checkout, onBackStep, onCreateB
 
   const [open, setOpen] = useState(false);
 
+  const [addressBooks, setAddressBooks] = useState<ICheckoutBillingAddress[]>(() => {
+    const localData = localStorage.getItem('addressBooks');
+    if (localData) {
+      return JSON.parse(localData);
+    }
+    return [];
+  });
+
   const handleOpen = () => {
     setOpen(true);
   };
@@ -33,11 +39,18 @@ export default function CheckoutBillingAddress({ checkout, onBackStep, onCreateB
     setOpen(false);
   };
 
+  const handleCreateNewAddress = (address: ICheckoutBillingAddress) => {
+    const newAddressBooks = [...addressBooks, address];
+    setAddressBooks(newAddressBooks);
+    localStorage.setItem('addressBooks', JSON.stringify(newAddressBooks));
+    onCreateBilling(address);
+  };
+
   return (
     <>
       <Grid container spacing={3}>
         <Grid item xs={12} md={8}>
-          {_addressBooks.map((address, index) => (
+          {addressBooks.map((address, index) => (
             <AddressItem
               key={index}
               address={address}
@@ -74,7 +87,7 @@ export default function CheckoutBillingAddress({ checkout, onBackStep, onCreateB
       <CheckoutBillingNewAddressForm
         open={open}
         onClose={handleClose}
-        onCreateBilling={onCreateBilling}
+        onCreateBilling={handleCreateNewAddress}
       />
     </>
   );
