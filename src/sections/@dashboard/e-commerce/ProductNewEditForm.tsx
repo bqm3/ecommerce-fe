@@ -169,14 +169,17 @@ export default function ProductNewEditForm({ isEdit, currentProduct }: Props) {
 
       const finalImages = [...oldUrls, ...uploadedUrls];
 
-      // 3. create product
-      await axios.post('/api/products', {
-        ...data,
-        images: finalImages,
-      });
+      // 3. create or update product
+      const payload = { ...data, images: finalImages };
+
+      if (isEdit && currentProduct) {
+        await axios.put(`/api/products/${currentProduct.id}`, payload);
+      } else {
+        await axios.post('/api/products', payload);
+      }
 
       reset();
-      enqueueSnackbar('Create success!');
+      enqueueSnackbar(!isEdit ? 'Create success!' : 'Update success!');
       navigate(PATH_DASHBOARD.eCommerce.list);
     } catch (error) {
       console.error(error);
