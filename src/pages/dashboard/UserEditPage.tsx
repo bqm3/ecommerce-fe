@@ -1,12 +1,13 @@
 import { Helmet } from 'react-helmet-async';
-import { paramCase } from 'change-case';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 // @mui
 import { Container } from '@mui/material';
 // routes
 import { PATH_DASHBOARD } from '../../routes/paths';
-// _mock_
-import { _userList } from '../../_mock/arrays';
+import axios from '../../utils/axios';
+// @types
+import { IUserAccountGeneral } from '../../@types/user';
 // components
 import { useSettingsContext } from '../../components/settings';
 import CustomBreadcrumbs from '../../components/custom-breadcrumbs';
@@ -18,9 +19,22 @@ import UserNewEditForm from '../../sections/@dashboard/user/UserNewEditForm';
 export default function UserEditPage() {
   const { themeStretch } = useSettingsContext();
 
-  const { name } = useParams();
+  const { name: id } = useParams();
 
-  const currentUser = _userList.find((user) => paramCase(user.name) === name);
+  const [currentUser, setCurrentUser] = useState<IUserAccountGeneral | undefined>(undefined);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (!id) return;
+      try {
+        const response = await axios.get(`/api/users/${id}`);
+        setCurrentUser(response.data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchUser();
+  }, [id]);
 
   return (
     <>

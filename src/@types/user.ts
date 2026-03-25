@@ -104,9 +104,11 @@ export type IUserAccountGeneral = {
   email: string;
   phoneNumber: string;
   address: string;
+  company?: string;
   isVerified: boolean;
   status: string;
   role: string;
+  password?: string;
 };
 
 export type IUserAccountBillingCreditCard = {

@@ -23,12 +23,14 @@ import { IUserAccountGeneral } from '../../@types/user';
 // redux
 import { useDispatch, useSelector } from '../../redux/store';
 import { getUsers } from '../../redux/slices/user';
+import axios from '../../utils/axios';
 // components
 import Iconify from '../../components/iconify';
 import Scrollbar from '../../components/scrollbar';
 import ConfirmDialog from '../../components/confirm-dialog';
 import CustomBreadcrumbs from '../../components/custom-breadcrumbs';
 import { useSettingsContext } from '../../components/settings';
+import { useSnackbar } from '../../components/snackbar';
 import {
   useTable,
   getComparator,
@@ -48,15 +50,8 @@ const STATUS_OPTIONS = ['all', 'active', 'banned'];
 
 const ROLE_OPTIONS = [
   'all',
-  'ux designer',
-  'full stack designer',
-  'backend developer',
-  'project manager',
-  'leader',
-  'ui designer',
-  'ui/ux designer',
-  'front end developer',
-  'full stack developer',
+  'admin',
+  'user',
 ];
 
 const TABLE_HEAD = [
@@ -95,6 +90,7 @@ export default function UserListPage() {
   const navigate = useNavigate();
 
   const dispatch = useDispatch();
+  const { enqueueSnackbar } = useSnackbar();
 
   const { users, isLoading, pagination } = useSelector((state) => state.user);
 
@@ -160,37 +156,68 @@ export default function UserListPage() {
     setFilterRole(event.target.value);
   };
 
-  const handleDeleteRow = (id: string) => {
-    const deleteRow = tableData.filter((row) => row.id !== id);
-    setSelected([]);
-    setTableData(deleteRow);
+  const handleDeleteRow = async (id: string) => {
+    try {
+      await axios.delete(`/api/users/${id}`);
+      const deleteRow = tableData.filter((row) => row.id !== id);
+      setSelected([]);
+      setTableData(deleteRow);
 
-    if (page > 0) {
-      if (dataInPage.length < 2) {
-        setPage(page - 1);
+      if (page > 0) {
+        if (dataInPage.length < 2) {
+          setPage(page - 1);
+        }
       }
+      enqueueSnackbar('Delete success!');
+    } catch (error: any) {
+      console.error(error);
+      enqueueSnackbar(error.response?.data?.message || error.message || 'Delete failed', { variant: 'error' });
     }
   };
 
-  const handleDeleteRows = (selected: string[]) => {
-    const deleteRows = tableData.filter((row) => !selected.includes(row.id));
-    setSelected([]);
-    setTableData(deleteRows);
+  const handleChangeStatusRow = async (id: string, newStatus: string) => {
+    try {
+      await axios.put(`/api/users/${id}`, { status: newStatus });
+      const updatedData = tableData.map((row) => {
+        if (row.id === id) {
+          return { ...row, status: newStatus };
+        }
+        return row;
+      });
+      setTableData(updatedData);
+      enqueueSnackbar(`Status updated to ${newStatus}`);
+    } catch (error: any) {
+      console.error(error);
+      enqueueSnackbar(error.response?.data?.message || error.message || 'Update failed', { variant: 'error' });
+    }
+  };
 
-    if (page > 0) {
-      if (selected.length === dataInPage.length) {
-        setPage(page - 1);
-      } else if (selected.length === dataFiltered.length) {
-        setPage(0);
-      } else if (selected.length > dataInPage.length) {
-        const newPage = Math.ceil((tableData.length - selected.length) / rowsPerPage) - 1;
-        setPage(newPage);
+  const handleDeleteRows = async (selected: string[]) => {
+    try {
+      await Promise.all(selected.map((id) => axios.delete(`/api/users/${id}`)));
+      const deleteRows = tableData.filter((row) => !selected.includes(row.id));
+      setSelected([]);
+      setTableData(deleteRows);
+
+      if (page > 0) {
+        if (selected.length === dataInPage.length) {
+          setPage(page - 1);
+        } else if (selected.length === dataFiltered.length) {
+          setPage(0);
+        } else if (selected.length > dataInPage.length) {
+          const newPage = Math.ceil((tableData.length - selected.length) / rowsPerPage) - 1;
+          setPage(newPage);
+        }
       }
+      enqueueSnackbar('Delete success!');
+    } catch (error: any) {
+      console.error(error);
+      enqueueSnackbar(error.response?.data?.message || error.message || 'Delete failed', { variant: 'error' });
     }
   };
 
   const handleEditRow = (id: string) => {
-    navigate(PATH_DASHBOARD.user.edit(paramCase(id)));
+    navigate(PATH_DASHBOARD.user.edit(id));
   };
 
   const handleResetFilter = () => {
@@ -298,7 +325,8 @@ export default function UserListPage() {
                         selected={selected.includes(row.id)}
                         onSelectRow={() => onSelectRow(row.id)}
                         onDeleteRow={() => handleDeleteRow(row.id)}
-                        onEditRow={() => handleEditRow(row.name)}
+                        onEditRow={() => handleEditRow(row.id)}
+                        onChangeStatusRow={() => handleChangeStatusRow(row.id, row.status === 'active' ? 'banned' : 'active')}
                       />
                     ))}
 

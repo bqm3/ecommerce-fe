@@ -90,7 +90,9 @@ export default function ProductNewEditForm({ isEdit, currentProduct }: Props) {
     name: Yup.string().required('Name is required'),
     description: Yup.string().required('Description is required'),
     images: Yup.array().min(1, 'Images is required'),
-    price: Yup.number().moreThan(0, 'Price should not be $0.00'),
+    price: Yup.number().typeError('Price must be a number').moreThan(0, 'Price should not be $0.00'),
+    priceSale: Yup.number().typeError('Sale Price must be a number'),
+    available: Yup.number().typeError('Quantity must be a number'),
   });
 
   const defaultValues = useMemo(

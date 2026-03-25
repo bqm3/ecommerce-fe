@@ -27,6 +27,7 @@ type Props = {
   onEditRow: VoidFunction;
   onSelectRow: VoidFunction;
   onDeleteRow: VoidFunction;
+  onChangeStatusRow: VoidFunction;
 };
 
 export default function UserTableRow({
@@ -35,8 +36,9 @@ export default function UserTableRow({
   onEditRow,
   onSelectRow,
   onDeleteRow,
+  onChangeStatusRow,
 }: Props) {
-  const { name, avatarUrl,  role, isVerified, status } = row;
+  const { name, avatarUrl, company, role, isVerified, status } = row;
 
   const [openConfirm, setOpenConfirm] = useState(false);
 
@@ -75,6 +77,9 @@ export default function UserTableRow({
           </Stack>
         </TableCell>
 
+        <TableCell align="left" sx={{ textTransform: 'capitalize' }}>
+          {company}
+        </TableCell>
 
         <TableCell align="left" sx={{ textTransform: 'capitalize' }}>
           {role}
@@ -134,6 +139,17 @@ export default function UserTableRow({
         >
           <Iconify icon="eva:edit-fill" />
           Edit
+        </MenuItem>
+
+        <MenuItem
+          onClick={() => {
+            onChangeStatusRow();
+            handleClosePopover();
+          }}
+          sx={{ color: status === 'active' ? 'warning.main' : 'success.main' }}
+        >
+          <Iconify icon={status === 'active' ? 'eva:slash-fill' : 'eva:checkmark-circle-2-fill'} />
+          {status === 'active' ? 'Ban User' : 'Set Active'}
         </MenuItem>
       </MenuPopover>
 

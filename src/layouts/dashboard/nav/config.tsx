@@ -56,18 +56,18 @@ const navConfig = [
     subheader: 'management',
     items: [
       // USER
-      // {
-      //   title: 'user',
-      //   path: PATH_DASHBOARD.user.root,
-      //   icon: ICONS.user,
-      //   children: [
-      //     // { title: 'profile', path: PATH_DASHBOARD.user.profile },
-      //     { title: 'list', path: PATH_DASHBOARD.user.list },
-      //     { title: 'create', path: PATH_DASHBOARD.user.new },
-      //     // { title: 'edit', path: PATH_DASHBOARD.user.demoEdit },
-      //     // { title: 'account', path: PATH_DASHBOARD.user.account },
-      //   ],
-      // },
+      {
+        title: 'user',
+        path: PATH_DASHBOARD.user.root,
+        icon: ICONS.user,
+        children: [
+          // { title: 'profile', path: PATH_DASHBOARD.user.profile },
+          { title: 'list', path: PATH_DASHBOARD.user.list },
+          { title: 'create', path: PATH_DASHBOARD.user.new },
+          // { title: 'edit', path: PATH_DASHBOARD.user.demoEdit },
+          // { title: 'account', path: PATH_DASHBOARD.user.account },
+        ],
+      },
 
       // E-COMMERCE
       {

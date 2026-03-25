@@ -1,14 +1,15 @@
 import * as Yup from 'yup';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 // form
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 // @mui
 import { LoadingButton } from '@mui/lab';
-import { Box, Card, Grid, Stack, Switch, Typography, FormControlLabel } from '@mui/material';
+import { Box, Card, Grid, Stack, Switch, Typography, FormControlLabel, IconButton, InputAdornment } from '@mui/material';
 // utils
 import { fData } from '../../../utils/formatNumber';
+import axios from '../../../utils/axios';
 // routes
 import { PATH_DASHBOARD } from '../../../routes/paths';
 // @types
@@ -17,6 +18,7 @@ import { IUserAccountGeneral } from '../../../@types/user';
 import { countries } from '../../../assets/data';
 // components
 import Label from '../../../components/label';
+import Iconify from '../../../components/iconify';
 import { CustomFile } from '../../../components/upload';
 import { useSnackbar } from '../../../components/snackbar';
 import FormProvider, {
@@ -41,13 +43,22 @@ export default function UserNewEditForm({ isEdit = false, currentUser }: Props) 
   const navigate = useNavigate();
 
   const { enqueueSnackbar } = useSnackbar();
+  
+  const [showPassword, setShowPassword] = useState(false);
 
   const NewUserSchema = Yup.object().shape({
     name: Yup.string().required('Name is required'),
-    email: Yup.string().required('Email is required').email(),
-    phoneNumber: Yup.string().required('Phone number is required'),
+    email: Yup.string().required('Email is required').email('Email must be a valid email address'),
+    phoneNumber: Yup.string()
+      .required('Phone number is required')
+      .matches(/^[0-9]+$/, 'Phone number must contain only numbers'),
     address: Yup.string().required('Address is required'),
-    role: Yup.string().required('Role Number is required'),
+    role: Yup.string().required('Role is required'),
+    zipCode: Yup.string().matches(/^[0-9]*$/, 'Zip code must contain only numbers'),
+    password: Yup.string().test('required-if-new', 'Password is required', function (value) {
+      if (!isEdit && !value) return false;
+      return true;
+    }),
   });
 
   const defaultValues = useMemo(
@@ -60,6 +71,7 @@ export default function UserNewEditForm({ isEdit = false, currentUser }: Props) 
       isVerified: currentUser?.isVerified || true,
       status: currentUser?.status,
       role: currentUser?.role || '',
+      password: '',
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [currentUser]
@@ -93,12 +105,17 @@ export default function UserNewEditForm({ isEdit = false, currentUser }: Props) 
 
   const onSubmit = async (data: FormValuesProps) => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      if (isEdit && currentUser) {
+        await axios.put(`/api/users/${currentUser.id}`, data);
+      } else {
+        await axios.post('/api/account/accounts', data);
+      }
       reset();
       enqueueSnackbar(!isEdit ? 'Create success!' : 'Update success!');
       navigate(PATH_DASHBOARD.user.list);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+      enqueueSnackbar(error.response?.data?.message || error.message || 'Operation failed', { variant: 'error' });
     }
   };
 
@@ -217,7 +234,7 @@ export default function UserNewEditForm({ isEdit = false, currentUser }: Props) 
             >
               <RHFTextField name="name" label="Full Name" />
               <RHFTextField name="email" label="Email Address" />
-              <RHFTextField name="phoneNumber" label="Phone Number" />
+              <RHFTextField name="phoneNumber" label="Phone Number" type="number" />
 
               <RHFSelect name="country" label="Country" placeholder="Country">
                 <option value="" />
@@ -231,9 +248,27 @@ export default function UserNewEditForm({ isEdit = false, currentUser }: Props) 
               <RHFTextField name="state" label="State/Region" />
               <RHFTextField name="city" label="City" />
               <RHFTextField name="address" label="Address" />
-              <RHFTextField name="zipCode" label="Zip/Code" />
+              <RHFTextField name="zipCode" label="Zip/Code" type="number" />
               <RHFTextField name="company" label="Company" />
-              <RHFTextField name="role" label="Role" />
+              <RHFSelect name="role" label="Role" placeholder="Role">
+                <option value="" />
+                <option value="admin">admin</option>
+                <option value="user">user</option>
+              </RHFSelect>
+              <RHFTextField 
+                name="password" 
+                label={!isEdit ? 'Password' : 'Change Password (optional)'} 
+                type={showPassword ? 'text' : 'password'}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                        <Iconify icon={showPassword ? 'eva:eye-fill' : 'eva:eye-off-fill'} />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
             </Box>
 
             <Stack alignItems="flex-end" sx={{ mt: 3 }}>
