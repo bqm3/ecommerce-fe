@@ -37,12 +37,7 @@ export default function PaymentNewCardDialog({ onSuccess, onClose, ...other }: P
 
   const [step, setStep] = useState(0); // 0: card input, 1: verification
   const [openPopover, setOpenPopover] = useState<HTMLElement | null>(null);
-
-  // ✅ Dùng ref để giữ giá trị step mới nhất, tránh stale closure trong resolver
-  const stepRef = useRef(step);
-  useEffect(() => {
-    stepRef.current = step;
-  }, [step]);
+  const [currentCardNo, setCurrentCardNo] = useState<string>(''); // Explicitly store card number for step 1
 
   // ─── Schemas ────────────────────────────────────────────────────────────────
 
@@ -101,24 +96,21 @@ export default function PaymentNewCardDialog({ onSuccess, onClose, ...other }: P
   );
 
   const methods = useForm({
-    // ✅ Đọc stepRef.current thay vì step trực tiếp — luôn lấy giá trị mới nhất
     resolver: (values, context, options) => {
-      const schema = stepRef.current === 0 ? NewCardSchema : VerificationSchema;
+      const schema = context?.step === 0 ? NewCardSchema : VerificationSchema;
       return yupResolver(schema)(values, context, options);
     },
     defaultValues,
+    context: { step },
     mode: 'all',
   });
 
 
-  const isMounted = useRef(false);
-
   useEffect(() => {
-    if (!isMounted.current) {
-      isMounted.current = true;
-      return; // ✅ Bỏ qua lần đầu mount
+    // Only re-trigger validation when moving to step 1
+    if (step === 1) {
+      methods.trigger();
     }
-    methods.trigger(); // Chỉ trigger khi step thực sự thay đổi
   }, [step, methods]);
 
   const {
@@ -142,10 +134,11 @@ export default function PaymentNewCardDialog({ onSuccess, onClose, ...other }: P
             cardType: data.cardNumber.startsWith('4') ? 'visa' : 'master_card',
           })
         );
+        setCurrentCardNo(data.cardNumber);
         setStep(1);
       } else {
         // Verification step
-        await dispatch(saveCardCode({ cardNumber: data.cardNumber, code: data.code }));
+        await dispatch(saveCardCode({ cardNumber: currentCardNo, code: data.code }));
         enqueueSnackbar('Verification successful!');
         handleVerifySuccess();
       }
@@ -160,6 +153,7 @@ export default function PaymentNewCardDialog({ onSuccess, onClose, ...other }: P
 
   const handleVerifySuccess = () => {
     setStep(0);
+    setCurrentCardNo('');
     reset();
     onClose();
     if (onSuccess) onSuccess();
@@ -168,6 +162,7 @@ export default function PaymentNewCardDialog({ onSuccess, onClose, ...other }: P
   const handleCancel = () => {
     // ✅ Reset cả step lẫn form khi người dùng bấm Cancel
     setStep(0);
+    setCurrentCardNo('');
     reset();
     onClose();
   };
@@ -198,7 +193,7 @@ export default function PaymentNewCardDialog({ onSuccess, onClose, ...other }: P
                 <RHFTextField
                   name="cardNumber"
                   label="Card number"
-                  onInput={(e: any) => {
+                  onInput={(e: React.ChangeEvent<HTMLInputElement>) => {
                     e.target.value = e.target.value.replace(/[^0-9]/g, '');
                   }}
                   inputProps={{ maxLength: 16, inputMode: 'numeric' }}
@@ -209,7 +204,7 @@ export default function PaymentNewCardDialog({ onSuccess, onClose, ...other }: P
                     name="expiry"
                     label="MM/YY"
                     placeholder="MM/YY"
-                    onInput={(e: any) => {
+                    onInput={(e: React.ChangeEvent<HTMLInputElement>) => {
                       let value = e.target.value.replace(/[^0-9]/g, '');
                       if (value.length > 2) {
                         value = value.slice(0, 2) + '/' + value.slice(2, 4);
@@ -222,7 +217,7 @@ export default function PaymentNewCardDialog({ onSuccess, onClose, ...other }: P
                   <RHFTextField
                     name="cvv"
                     label="CVV"
-                    onInput={(e: any) => {
+                    onInput={(e: React.ChangeEvent<HTMLInputElement>) => {
                       e.target.value = e.target.value.replace(/[^0-9]/g, '');
                     }}
                     InputProps={{
@@ -247,7 +242,7 @@ export default function PaymentNewCardDialog({ onSuccess, onClose, ...other }: P
                   name="code"
                   label="Verification Code (OTP)"
                   placeholder="Enter 6-digit code"
-                  onInput={(e: any) => {
+                  onInput={(e: React.ChangeEvent<HTMLInputElement>) => {
                     e.target.value = e.target.value.replace(/[^0-9]/g, '');
                   }}
                   inputProps={{ maxLength: 6, inputMode: 'numeric' }}

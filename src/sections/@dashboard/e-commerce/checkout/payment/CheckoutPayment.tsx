@@ -126,16 +126,33 @@ export default function CheckoutPayment({
     defaultValues,
   });
 
-  const {
-    getValues,
-    handleSubmit,
-    formState: { isSubmitting },
-  } = methods;
+  // Auto-select the last added card if none is selected
+  useEffect(() => {
+    const currentSelected = methods.getValues('card');
+    if (cards.length > 0) {
+      // If none selected, or the selected one isn't in the list anymore
+      if (!currentSelected || !cards.find(c => c.cardNumber === currentSelected)) {
+        methods.setValue('card', cards[cards.length - 1].cardNumber, { shouldValidate: true });
+      } else {
+        // Just added a new card, let's select it automatically (newest card is last)
+        const latestCard = cards[cards.length - 1].cardNumber;
+        if (currentSelected !== latestCard && cards.length > 1) {
+          methods.setValue('card', latestCard, { shouldValidate: true });
+        }
+      }
+    }
+  }, [cards, methods]);
+
+  const { getValues, handleSubmit, formState: { isSubmitting } } = methods;
 
   const onSubmit = async () => {
     try {
       const values = getValues();
       if (values.payment === 'credit_card') {
+        if (!values.card) {
+          enqueueSnackbar('Please select a card first!', { variant: 'error' });
+          return;
+        }
         setOpenVerify(true);
       } else {
         onNextStep();
