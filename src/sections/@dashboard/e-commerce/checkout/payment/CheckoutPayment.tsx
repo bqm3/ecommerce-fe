@@ -20,6 +20,7 @@ import { getCards, initializeCards, saveCardCode } from '../../../../../redux/sl
 import Iconify from '../../../../../components/iconify';
 import FormProvider from '../../../../../components/hook-form';
 import { useSnackbar } from '../../../../../components/snackbar';
+import axios from '../../../../../utils/axios';
 //
 import CheckoutSummary from '../CheckoutSummary';
 import CheckoutDelivery from './CheckoutDelivery';
@@ -155,6 +156,13 @@ export default function CheckoutPayment({
         }
         setOpenVerify(true);
       } else {
+        await axios.post('/api/checkout', {
+          shipping: values.delivery,
+          discount: checkout.discount,
+          billing: checkout.billing,
+          payment: values.payment,
+          cart: checkout.cart,
+        });
         onNextStep();
         onReset();
       }
@@ -167,12 +175,21 @@ export default function CheckoutPayment({
     try {
       const values = getValues();
       await dispatch(saveCardCode({ cardNumber: values.card, code }));
+      
+      await axios.post('/api/checkout', {
+        shipping: values.delivery,
+        discount: checkout.discount,
+        billing: checkout.billing,
+        payment: values.payment,
+        cart: checkout.cart,
+      });
+
       setOpenVerify(false);
       onNextStep();
       onReset();
     } catch (error) {
       console.error(error);
-      enqueueSnackbar('Failed to verify card!', { variant: 'error' });
+      enqueueSnackbar('Failed to checkout or verify!', { variant: 'error' });
     }
   };
 

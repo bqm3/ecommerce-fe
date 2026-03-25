@@ -1,5 +1,5 @@
 import { Helmet } from 'react-helmet-async';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import sumBy from 'lodash/sumBy';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 // @mui
@@ -22,6 +22,7 @@ import {
 import { PATH_DASHBOARD } from '../../routes/paths';
 // utils
 import { fTimestamp } from '../../utils/formatTime';
+import axios from '../../utils/axios';
 // _mock_
 import { _invoices } from '../../_mock/arrays';
 // @types
@@ -96,7 +97,65 @@ export default function InvoiceListPage() {
     onChangeRowsPerPage,
   } = useTable({ defaultOrderBy: 'createDate' });
 
-  const [tableData, setTableData] = useState(_invoices);
+  const [tableData, setTableData] = useState<IInvoice[]>([]);
+
+  useEffect(() => {
+    const fetchInvoices = async () => {
+      try {
+        const res = await axios.get('/api/checkout/orders');
+        const orders = res.data;
+        const mappedInvoices = orders.map((o: any, idx: number) => ({
+          id: o.id,
+          sent: 1,
+          status: o.status === 'PAID' ? 'paid' : o.status === 'PENDING' ? 'unpaid' : 'draft',
+          totalPrice: o.total,
+          invoiceNumber: `INV-${o.id.substring(0, 5).toUpperCase()}`,
+          subTotalPrice: o.subtotal,
+          taxes: 0,
+          discount: o.discount,
+          invoiceFrom: {
+            id: 'brand',
+            name: 'E-commerce Store',
+            address: '123 E-com st, CA',
+            company: 'Ecommerce App',
+            email: 'admin@store.com',
+            phone: '123-456-7890',
+          },
+          invoiceTo: o.billing ? {
+            id: o.id,
+            name: o.billing.receiver || 'Customer',
+            address: o.billing.fullAddress || '',
+            company: '',
+            email: o.billing.email || '',
+            phone: o.billing.phoneNumber || '',
+          } : {
+            id: o.id,
+            name: 'Guest Customer',
+            address: '',
+            company: '',
+            email: '',
+            phone: '',
+          },
+          createDate: new Date(o.createdAt),
+          dueDate: new Date(o.createdAt),
+          items: o.items.map((i: any) => ({
+            id: i.id,
+            title: `Product ${i.productId}`,
+            description: '',
+            quantity: i.quantity,
+            price: i.price,
+            total: i.subtotal,
+            service: 'all',
+          })),
+        }));
+        setTableData(mappedInvoices);
+      } catch (err) {
+        console.error(err);
+        setTableData(_invoices); // fallback
+      }
+    };
+    fetchInvoices();
+  }, []);
 
   const [filterName, setFilterName] = useState('');
 
