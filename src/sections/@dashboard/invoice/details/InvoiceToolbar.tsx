@@ -66,7 +66,7 @@ export default function InvoiceToolbar({ invoice }: Props) {
             </IconButton>
           </Tooltip>
 
-          <PDFDownloadLink
+          {/* <PDFDownloadLink
             document={<InvoicePDF invoice={invoice} />}
             fileName={invoice.invoiceNumber}
             style={{ textDecoration: 'none' }}
@@ -82,7 +82,7 @@ export default function InvoiceToolbar({ invoice }: Props) {
                 </IconButton>
               </Tooltip>
             )}
-          </PDFDownloadLink>
+          </PDFDownloadLink> */}
 
           <Tooltip title="Print">
             <IconButton>

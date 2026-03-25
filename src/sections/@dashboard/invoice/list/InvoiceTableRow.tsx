@@ -140,7 +140,7 @@ export default function InvoiceTableRow({
           View
         </MenuItem>
 
-        <MenuItem
+        {/* <MenuItem
           onClick={() => {
             onEditRow();
             handleClosePopover();
@@ -148,7 +148,7 @@ export default function InvoiceTableRow({
         >
           <Iconify icon="eva:edit-fill" />
           Edit
-        </MenuItem>
+        </MenuItem> */}
 
         <Divider sx={{ borderStyle: 'dashed' }} />
 
