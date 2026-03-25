@@ -51,6 +51,7 @@ export default function InvoiceDetails({ invoice }: Props) {
     status,
     dueDate,
     discount,
+    shipping,
     invoiceTo,
     createDate,
     totalPrice,
@@ -206,6 +207,18 @@ export default function InvoiceDetails({ invoice }: Props) {
                     sx={{ color: 'error.main', typography: 'body1' }}
                   >
                     {discount && fCurrency(-discount)}
+                  </TableCell>
+                </StyledRowResult>
+
+                <StyledRowResult>
+                  <TableCell colSpan={3} />
+
+                  <TableCell align="right" sx={{ typography: 'body1' }}>
+                    Shipping
+                  </TableCell>
+
+                  <TableCell align="right" width={120} sx={{ typography: 'body1' }}>
+                    {shipping ? fCurrency(shipping) : '-'}
                   </TableCell>
                 </StyledRowResult>
 

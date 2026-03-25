@@ -28,6 +28,7 @@ export type IInvoice = {
   subTotalPrice: number;
   taxes: number | string;
   discount: number | string;
+  shipping?: number | string;
   invoiceFrom: IInvoiceAddress;
   invoiceTo: IInvoiceAddress;
   createDate: Date | number;

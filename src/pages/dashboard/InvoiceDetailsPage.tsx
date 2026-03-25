@@ -37,7 +37,8 @@ export default function InvoiceDetailsPage() {
           invoiceNumber: `INV-${o.id.substring(0, 5).toUpperCase()}`,
           subTotalPrice: o.subtotal,
           taxes: 0,
-          discount: o.discount,
+          discount: o.discount || 0,
+          shipping: o.shipping || 0,
           invoiceFrom: {
             id: 'brand',
             name: 'E-commerce Store',
