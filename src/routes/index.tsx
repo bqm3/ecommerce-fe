@@ -132,7 +132,7 @@ import {
   DemoTextMaxLinePage,
   DemoUploadPage,
 } from './elements';
-import FacebookLoginPage from 'src/sections/facebook/Login';
+// import FacebookLoginPage from 'src/sections/facebook/Login';
 
 // ----------------------------------------------------------------------
 
