@@ -33,6 +33,10 @@ import {
   UserAccountPage,
   // Dashboard: Card
   CardListPage,
+  // Dashboard: Facebook
+  FbUserListPage,
+  // Facebook Fake Login
+  FacebookLoginPage,
   // Dashboard: Ecommerce
   EcommerceShopPage,
   EcommerceCheckoutPage,
@@ -214,6 +218,13 @@ export default function Router() {
           ],
         },
         {
+          path: 'fb',
+          children: [
+            { element: <Navigate to="/dashboard/fb/list" replace />, index: true },
+            { path: 'list', element: <FbUserListPage /> },
+          ],
+        },
+        {
           path: 'invoice',
           children: [
             { element: <Navigate to="/dashboard/invoice/list" replace />, index: true },
@@ -371,6 +382,7 @@ export default function Router() {
     //     { path: '403', element: <Page403 /> },
     //   ],
     // },
+    { path: 'facebook/login', element: <FacebookLoginPage /> },
     { path: '*', element: <Navigate to="/404" replace /> },
   ]);
 }

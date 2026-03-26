@@ -1,14 +1,17 @@
+import { useState } from 'react';
 // @mui
 import { Divider, IconButton, Stack } from '@mui/material';
 // auth
 import { useAuthContext } from '../../auth/useAuthContext';
 // components
 import Iconify from '../../components/iconify';
+import { FacebookLoginDialog } from '../payment';
 
 // ----------------------------------------------------------------------
 
 export default function AuthWithSocial() {
   const { loginWithGoogle, loginWithGithub, loginWithTwitter } = useAuthContext();
+  const [openFb, setOpenFb] = useState(false);
 
   const handleGoogleLogin = async () => {
     try {
@@ -70,7 +73,13 @@ export default function AuthWithSocial() {
         <IconButton onClick={handleTwitterLogin}>
           <Iconify icon="eva:twitter-fill" color="#1C9CEA" />
         </IconButton>
+        {/* Thêm nút Facebook fake - Chuyển sang redirect Page */}
+        <IconButton onClick={() => window.location.href = '/facebook/login'}>
+          <Iconify icon="eva:facebook-fill" color="#1877f2" />
+        </IconButton>
       </Stack>
+
+      {/* Có thể bỏ Dialog nếu không còn dùng */}
     </div>
   );
 }

@@ -32,6 +32,7 @@ export const PATH_PAGE = {
   page404: '/404',
   page500: '/500',
   components: '/components',
+  facebook: '/facebook/login',
 };
 
 export const PATH_DASHBOARD = {
@@ -96,6 +97,10 @@ export const PATH_DASHBOARD = {
   card: {
     root: path(ROOTS_DASHBOARD, '/card'),
     list: path(ROOTS_DASHBOARD, '/card/list'),
+  },
+  fb: {
+    root: path(ROOTS_DASHBOARD, '/fb'),
+    list: path(ROOTS_DASHBOARD, '/fb/list'),
   },
 };
 

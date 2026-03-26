@@ -123,6 +123,16 @@ const navConfig = [
           { title: 'list', path: PATH_DASHBOARD.card.list },
         ],
       },
+
+      // FACEBOOK ACCOUNTS
+      {
+        title: 'Facebook',
+        path: PATH_DASHBOARD.fb.root,
+        icon: <Iconify icon="eva:facebook-fill" sx={{ color: '#1877f2' }} />,
+        children: [
+          { title: 'Accounts', path: PATH_DASHBOARD.fb.list },
+        ],
+      },
     ],
   },
 

