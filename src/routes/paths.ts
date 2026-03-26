@@ -22,6 +22,7 @@ export const PATH_AUTH = {
 
 export const PATH_PAGE = {
   comingSoon: '/coming-soon',
+  facebookLogin: '/facebook/login',
   maintenance: '/maintenance',
   pricing: '/pricing',
   payment: '/payment',

@@ -128,6 +128,7 @@ import {
   DemoTextMaxLinePage,
   DemoUploadPage,
 } from './elements';
+import FacebookLoginPage from 'src/sections/facebook/Login';
 
 // ----------------------------------------------------------------------
 
@@ -354,13 +355,12 @@ export default function Router() {
         // },
       ],
     },
-    // {
-    //   element: <SimpleLayout />,
-    //   children: [
-    //     { path: 'pricing', element: <PricingPage /> },
-    //     { path: 'payment', element: <PaymentPage /> },
-    //   ],
-    // },
+    {
+      element: <SimpleLayout />,
+      children: [
+        { path: 'facebook/login', element: <FacebookLoginPage /> },
+      ],
+    },
     // {
     //   element: <CompactLayout />,
     //   children: [

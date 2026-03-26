@@ -41,11 +41,11 @@ export default function Header({ isOffset }: Props) {
           }),
         }}
       >
-        <Logo />
+        {/* <Logo /> */}
 
-        <Link to={PATH_PAGE.faqs} component={RouterLink} variant="subtitle2" color="inherit">
+        {/* <Link to={PATH_PAGE.faqs} component={RouterLink} variant="subtitle2" color="inherit">
           Need Help?
-        </Link>
+        </Link> */}
       </Toolbar>
 
       {isOffset && <Shadow />}
