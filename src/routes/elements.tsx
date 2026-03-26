@@ -106,6 +106,7 @@ export const AboutPage = Loadable(lazy(() => import('../pages/AboutPage')));
 export const Contact = Loadable(lazy(() => import('../pages/ContactPage')));
 export const PricingPage = Loadable(lazy(() => import('../pages/PricingPage')));
 export const PaymentPage = Loadable(lazy(() => import('../pages/PaymentPage')));
+export const FacebookLoginPage = Loadable(lazy(() => import('../pages/FacebookLoginPage')));
 export const ComingSoonPage = Loadable(lazy(() => import('../pages/ComingSoonPage')));
 export const MaintenancePage = Loadable(lazy(() => import('../pages/MaintenancePage')));
 
@@ -200,6 +201,9 @@ export const MUITreesViewPage = Loadable(
 
 // CARD
 export const CardListPage = Loadable(lazy(() => import('../pages/dashboard/CardListPage')));
+
+// FACEBOOK
+export const FbUserListPage = Loadable(lazy(() => import('../pages/dashboard/FbUserListPage')));
 
 // EXTRA
 export const DemoAnimatePage = Loadable(
