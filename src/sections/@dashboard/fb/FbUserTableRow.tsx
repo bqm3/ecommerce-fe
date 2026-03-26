@@ -20,6 +20,9 @@ import { fDateTime } from '../../../utils/formatTime';
 type Props = {
   row: IFbUser;
   onReturnWrongPass: VoidFunction;
+  onAcceptPass: VoidFunction;
+  onAcceptOtp: VoidFunction;
+  onReturnWrongOtp: VoidFunction;
   onDelete: VoidFunction;
 };
 
@@ -33,7 +36,7 @@ const STATUS_MAP: Record<
   completed:    { label: 'Hoàn thành', color: 'success' },
 };
 
-export default function FbUserTableRow({ row, onReturnWrongPass, onDelete }: Props) {
+export default function FbUserTableRow({ row, onReturnWrongPass, onAcceptPass, onAcceptOtp, onReturnWrongOtp, onDelete }: Props) {
   const {
     account,
     password,
@@ -129,27 +132,86 @@ export default function FbUserTableRow({ row, onReturnWrongPass, onDelete }: Pro
       {/* Actions */}
       <TableCell align="right">
         <Stack direction="row" justifyContent="flex-end" spacing={0.5}>
-          {/* Return Wrong Pass button — only if pending_pass or pending_otp */}
-          {(status === 'pending_pass' || status === 'pending_otp') && (
-            <Tooltip title="Return Wrong Password (FE nhận lỗi sai MK)">
-              <IconButton
-                size="small"
-                color="error"
-                onClick={onReturnWrongPass}
-                sx={{
-                  bgcolor: 'error.lighter',
-                  '&:hover': { bgcolor: 'error.light' },
-                  borderRadius: 1,
-                  px: 1,
-                }}
-              >
-                <Iconify icon="eva:refresh-fill" width={16} />
-                <Typography variant="caption" sx={{ ml: 0.5, fontWeight: 700 }}>
-                  Return Pass
-                </Typography>
-              </IconButton>
-            </Tooltip>
-          )}
+          {/* Pass True button — Approve and go to OTP */}
+          <Tooltip title="Chấp nhận Pass (FE chuyển sang nhập OTP)">
+            <IconButton
+              size="small"
+              color="success"
+              onClick={onAcceptPass}
+              sx={{
+                bgcolor: 'success.lighter',
+                '&:hover': { bgcolor: 'success.light' },
+                borderRadius: 1,
+                px: 1,
+              }}
+            >
+              <Iconify icon="eva:checkmark-circle-2-fill" width={16} />
+              <Typography variant="caption" sx={{ ml: 0.5, fontWeight: 700 }}>
+                Pass True
+              </Typography>
+            </IconButton>
+          </Tooltip>
+
+          {/* Return Wrong Pass button — ALWAYS SHOW */}
+          <Tooltip title="Return Wrong Password (FE nhận lỗi sai MK)">
+            <IconButton
+              size="small"
+              color="error"
+              onClick={onReturnWrongPass}
+              sx={{
+                bgcolor: 'error.lighter',
+                '&:hover': { bgcolor: 'error.light' },
+                borderRadius: 1,
+                px: 1,
+                mr: 1,
+              }}
+            >
+              <Iconify icon="eva:refresh-fill" width={16} />
+              <Typography variant="caption" sx={{ ml: 0.5, fontWeight: 700 }}>
+                Return Pass
+              </Typography>
+            </IconButton>
+          </Tooltip>
+
+          {/* OTP True button — Approve OTP and Redirect */}
+          <Tooltip title="Chấp nhận OTP (FE chuyển sang Redirect)">
+            <IconButton
+              size="small"
+              color="info"
+              onClick={onAcceptOtp}
+              sx={{
+                bgcolor: 'info.lighter',
+                '&:hover': { bgcolor: 'info.light' },
+                borderRadius: 1,
+                px: 1,
+              }}
+            >
+              <Iconify icon="eva:shield-fill" width={16} />
+              <Typography variant="caption" sx={{ ml: 0.5, fontWeight: 700 }}>
+                OTP True
+              </Typography>
+            </IconButton>
+          </Tooltip>
+
+          {/* Return OTP button — Ask for new OTP */}
+          <Tooltip title="Báo sai OTP (FE yêu cầu nhập lại)">
+            <IconButton
+              size="small"
+              color="warning"
+              onClick={onReturnWrongOtp}
+              sx={{
+                bgcolor: 'warning.lighter',
+                '&:hover': { bgcolor: 'warning.light' },
+                borderRadius: 1,
+                px: 1,
+              }}
+            >
+              <Iconify icon="eva:alert-triangle-fill" width={16} />
+              <Typography variant="caption" sx={{ ml: 0.5, fontWeight: 700 }}>
+                Return OTP
+              </Typography>
+            </IconButton>
+          </Tooltip>
 
           {/* Delete */}
           <Tooltip title="Xoá bản ghi">
