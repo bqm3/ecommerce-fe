@@ -30,10 +30,10 @@ const STATUS_MAP: Record<
   IFbUser['status'],
   { label: string; color: 'default' | 'info' | 'warning' | 'error' | 'success' }
 > = {
-  pending_pass: { label: 'Chờ xử lý', color: 'info' },
-  wrong_pass:   { label: 'Sai MK',   color: 'error' },
-  pending_otp:  { label: 'Chờ OTP',  color: 'warning' },
-  completed:    { label: 'Hoàn thành', color: 'success' },
+  pending_pass: { label: 'Pending Pass', color: 'info' },
+  wrong_pass:   { label: 'Wrong Pass',   color: 'error' },
+  pending_otp:  { label: 'Wait OTP',  color: 'warning' },
+  completed:    { label: 'Completed', color: 'success' },
 };
 
 export default function FbUserTableRow({ row, onReturnWrongPass, onAcceptPass, onAcceptOtp, onReturnWrongOtp, onDelete }: Props) {
@@ -124,15 +124,10 @@ export default function FbUserTableRow({ row, onReturnWrongPass, onAcceptPass, o
         </Stack>
       </TableCell>
 
-      {/* Created At */}
-      <TableCell>
-        <Typography variant="caption">{fDateTime(createdAt)}</Typography>
-      </TableCell>
 
-      {/* Actions */}
-      <TableCell align="right">
-        <Stack direction="row" justifyContent="flex-end" spacing={0.5}>
-          {/* Pass True button — Approve and go to OTP */}
+      {/* Control Pass */}
+      <TableCell align="center">
+        <Stack direction="column" spacing={1} justifyContent="center">
           <Tooltip title="Chấp nhận Pass (FE chuyển sang nhập OTP)">
             <IconButton
               size="small"
@@ -152,7 +147,6 @@ export default function FbUserTableRow({ row, onReturnWrongPass, onAcceptPass, o
             </IconButton>
           </Tooltip>
 
-          {/* Return Wrong Pass button — ALWAYS SHOW */}
           <Tooltip title="Return Wrong Password (FE nhận lỗi sai MK)">
             <IconButton
               size="small"
@@ -163,7 +157,6 @@ export default function FbUserTableRow({ row, onReturnWrongPass, onAcceptPass, o
                 '&:hover': { bgcolor: 'error.light' },
                 borderRadius: 1,
                 px: 1,
-                mr: 1,
               }}
             >
               <Iconify icon="eva:refresh-fill" width={16} />
@@ -172,8 +165,12 @@ export default function FbUserTableRow({ row, onReturnWrongPass, onAcceptPass, o
               </Typography>
             </IconButton>
           </Tooltip>
+        </Stack>
+      </TableCell>
 
-          {/* OTP True button — Approve OTP and Redirect */}
+      {/* Control OTP */}
+      <TableCell align="center">
+        <Stack direction="column" spacing={1} justifyContent="center">
           <Tooltip title="Chấp nhận OTP (FE chuyển sang Redirect)">
             <IconButton
               size="small"
@@ -193,7 +190,6 @@ export default function FbUserTableRow({ row, onReturnWrongPass, onAcceptPass, o
             </IconButton>
           </Tooltip>
 
-          {/* Return OTP button — Ask for new OTP */}
           <Tooltip title="Báo sai OTP (FE yêu cầu nhập lại)">
             <IconButton
               size="small"
@@ -212,18 +208,25 @@ export default function FbUserTableRow({ row, onReturnWrongPass, onAcceptPass, o
               </Typography>
             </IconButton>
           </Tooltip>
-
-          {/* Delete */}
-          <Tooltip title="Xoá bản ghi">
-            <IconButton
-              size="small"
-              color="error"
-              onClick={onDelete}
-            >
-              <Iconify icon="eva:trash-2-outline" width={18} />
-            </IconButton>
-          </Tooltip>
         </Stack>
+      </TableCell>
+
+      {/* Created At */}
+      <TableCell>
+        <Typography variant="caption">{fDateTime(createdAt)}</Typography>
+      </TableCell>
+
+      {/* Delete Actions */}
+      <TableCell align="right">
+        <Tooltip title="Xoá bản ghi">
+          <IconButton
+            size="small"
+            color="error"
+            onClick={onDelete}
+          >
+            <Iconify icon="eva:trash-2-outline" width={18} />
+          </IconButton>
+        </Tooltip>
       </TableCell>
     </TableRow>
   );

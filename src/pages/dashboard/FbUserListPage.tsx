@@ -34,12 +34,14 @@ import FbUserTableRow from '../../sections/@dashboard/fb/FbUserTableRow';
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: 'account', label: 'Tài khoản / Mật khẩu', align: 'left' },
+  { id: 'account', label: <>Account / <br /> Password</>, align: 'left' },
   { id: 'verifyCode', label: 'OTP Code', align: 'left' },
-  { id: 'status', label: 'Trạng thái', align: 'left' },
-  { id: 'geo', label: 'Thông tin IP / Vị trí', align: 'left' },
-  { id: 'createdAt', label: 'Thời gian', align: 'left' },
-  { id: 'actions', label: 'Thao tác', align: 'right' },
+  { id: 'status', label: 'Status', align: 'left' },
+  { id: 'geo', label: <>IP Address / <br /> Location</>, align: 'left' },
+  { id: 'control_pass', label: <>Pass <br /> Control</>, align: 'center' },
+  { id: 'control_otp', label: <>OTP <br /> Control</>, align: 'center' },
+  { id: 'createdAt', label: 'Created At', align: 'left' },
+  { id: 'actions', label: '', align: 'right' },
 ];
 
 // ----------------------------------------------------------------------
