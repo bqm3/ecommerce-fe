@@ -13,7 +13,7 @@ export default function SimpleLayout() {
 
   return (
     <>
-      <Header isOffset={isOffset} />
+      {/* <Header isOffset={isOffset} /> */}
 
       <Outlet />
     </>
